@@ -18,6 +18,7 @@ const Mess = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     alert("Searching! " + JSON.stringify(formData, null, 2));
+    console.log(formData)
   };
 
   return (

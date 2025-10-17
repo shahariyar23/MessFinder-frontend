@@ -1,19 +1,31 @@
 import CommonFrom from "@/components/Common/From";
+import { Spinner } from "@/components/ui/spinner";
 import { loginFromControls } from "@/config/config";
+import { loginUser } from "@/store/auth/authSlice";
 import { useState } from "react";
-import { Link } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router";
+import { toast } from "react-toastify";
 
 const Login = () => {
+  const {isLoading, user} = useSelector(state=>state.auth);
+  const dispatch =useDispatch();
+  const nevigate = useNavigate()
     const [formData, setFormData] = useState({
         email: "",
         password: ""
     });
-
     const handleSubmit = (e) => {
         e.preventDefault();
-        // custom login logic here
-        alert("Welcome!\n" + JSON.stringify(formData, null, 2));
-        setFormData({ email: "", password: "" });
+        dispatch(loginUser(formData)).then(res=>{
+          
+          if(res?.payload?.success){
+            toast.success(`${res.payload.message}`)
+            nevigate("/");
+          }else{
+            toast.error(`${res?.payload?.message}`)
+          }
+        })
     };
     return (
 <div className="flex flex-1 items-center justify-center min-h-screen px-10 bg-gradient-to-br from-[#b4e0fb] to-[#e7eff3]">
@@ -32,14 +44,18 @@ const Login = () => {
           fromData={formData}
           setFromData={setFormData}
           onSubmit={handleSubmit}
-          buttonText="Log In"
+          buttonText={ isLoading ? <Spinner/> : "Log In"}
           isButtonDisable={
             !formData.email ||
-            !formData.password
+            !formData.password ||
+            isLoading
           }
         />
         <p className="text-[#4c809a] text-sm text-center mt-5">
           Don&apos;t have an account? <Link to="/signup" className="underline hover:text-[#13a4ec]">Sign Up</Link>
+        </p>
+        <p className="text-[#4c809a] text-sm text-center mt-5">
+           <Link to="/signup" className="underline hover:text-[#13a4ec]">FSorgot password</Link>
         </p>
       </div>
     </div>

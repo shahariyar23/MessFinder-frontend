@@ -1,9 +1,16 @@
 import CommonFrom from "@/components/Common/From";
+import { Spinner } from "@/components/ui/spinner";
 import { registerFromControls } from "@/config/config";
+import { registerUser } from "@/store/auth/authSlice";
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router";
+import { toast } from "react-toastify";
 
 const SignUp = () => {
+  const {isLoading} = useSelector(state=>state.auth)
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     userName: "",
     email: "",
@@ -14,15 +21,15 @@ const SignUp = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // custom register logic here
-    alert("Registered!\n" + JSON.stringify(formData, null, 2));
-    setFormData({
-      userName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      role: ""
+    dispatch(registerUser(formData)).then((res) => {
+      if (res?.payload?.success) {
+         toast.success(`${res?.payload?.message}`)
+        navigate("/login");
+      } else {
+       toast.error(`${res?.payload?.message}`)
+      }
     });
+  
   };
 
   return (
@@ -42,14 +49,15 @@ const SignUp = () => {
           fromData={formData}
           setFromData={setFormData}
           onSubmit={handleSubmit}
-          buttonText="Register"
+          buttonText={isLoading? <Spinner/> : "Register"}
           isButtonDisable={
             !formData.userName ||
             !formData.email ||
             !formData.password ||
             !formData.confirmPassword ||
             !formData.role ||
-            formData.password !== formData.confirmPassword
+            formData.password !== formData.confirmPassword ||
+            isLoading 
           }
         />
         <p className="text-[#4c809a] text-sm text-center mt-5">

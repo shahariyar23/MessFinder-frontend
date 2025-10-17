@@ -137,7 +137,7 @@ case "date":
             <SelectContent>
               {getComponetType.options && getComponetType.options.length > 0
                 ? getComponetType.options.map((optionItem) => (
-                  <SelectItem key={optionItem.id} value={optionItem.label}>
+                  <SelectItem key={optionItem.id} value={optionItem.id}>
                     {optionItem.label}
                   </SelectItem>
                 ))
@@ -194,8 +194,14 @@ case "date":
           </div>
         ))}
       </div>
-      <Button disabled={isButtonDisable} type="submit" className="mt-4 w-full" variant="nav">
-        {buttonText || "Submit"}
+      <Button 
+        disabled={isButtonDisable} 
+        type="submit" 
+        className="mt-4 w-full flex items-center justify-center gap-2" 
+        variant="nav"
+      >
+        {/* Better handling of spinner/text */}
+        {typeof buttonText === 'object' ? buttonText : buttonText}
       </Button>
     </form>
   );

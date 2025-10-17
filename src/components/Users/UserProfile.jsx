@@ -7,10 +7,13 @@ import BookingListing from "@/components/Booking/BookingListing";
 import Payment from "@/components/Booking/Payment";
 import { sidebarLinks } from "@/config/config";
 import { HelpCircle } from "lucide-react";
+import { useParams } from "react-router";
+import Messlisting from "../Booking/MessListing";
 
 
 
 const UserProfile = () => {
+    
     const [activeTab, setActiveTab] = useState("booking");
     return (
         <div className="min-h-screen w-full bg-slate-50 ">
@@ -59,6 +62,9 @@ const UserProfile = () => {
                     <main className="flex-1 max-w-[960px] mx-auto px-3 pt-3">
                         <TabsContent value="booking">
                             <UserBooking />
+                        </TabsContent>
+                        <TabsContent value="list">
+                            <Messlisting/>
                         </TabsContent>
                         <TabsContent value="payments">
                             <h2 className="text-[#0d171b] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Saved</h2>

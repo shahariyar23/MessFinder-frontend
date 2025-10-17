@@ -14,6 +14,7 @@ import Messlisting from "@/pages/Mess/Messlisting";
 import MessRoot from "@/pages/Mess/MessRoot";
 import SingleMess from "@/pages/Mess/SingleMess";
 import NotFound from "@/pages/NotFound/NotFound";
+import Protected from "@/pages/Protected/Protected";
 import Root from "@/pages/Root/Root";
 import { createBrowserRouter } from "react-router";
 
@@ -32,13 +33,17 @@ export const router = createBrowserRouter([
             {path: "signup", Component: Signup},
             {path: "login", Component: Login},
             {path: "booking", Component: Booking},
-            {path: "profile", Component: UserProfile},
+            {path: "profile/:userId", element: <Protected>
+                <UserProfile/>
+            </Protected>},
+            {path: "mess/add", element: <Protected>
+                <AddMessDetails/>
+            </Protected>},
             {path: "mess", Component: MessRoot,
                 children: [
-                    {index: true, Component: Mess},
+                    {index: true, Component: MessRoot},
                     {path: "listing", Component: Messlisting},
-                    {path: "info", Component: SingleMess},
-                    {path: "add", Component: AddMessDetails},
+                    {path: "info/:messId", Component: SingleMess}
                 ]
             },
             {path: "*", Component: NotFound},

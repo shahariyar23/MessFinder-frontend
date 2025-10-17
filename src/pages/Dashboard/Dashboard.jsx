@@ -5,7 +5,6 @@ const Dashboard = () => {
     const [location, setLocation] = useState("");
     const handleSubmit = (e) => {
     e.preventDefault();
-    // You can fetch mess listings based on the location here
     alert(`Searching mess near: ${location}`);
     setLocation('');
   };

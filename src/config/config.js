@@ -9,6 +9,8 @@ import {
     CloudCheck,
     Home,
     List,
+    ListCheck
+
 } from "lucide-react";
 
 
@@ -237,6 +239,12 @@ export const sidebarLinks = [
         label: "Bookings",
         icon: Book,
         iconFilled: BookOpen,
+    },
+    {
+        value: "list",
+        label: "All Messes",
+        icon: List,
+        iconFilled: ListCheck,
     },
     {
         value: "payments",
