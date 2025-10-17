@@ -256,6 +256,7 @@ export default function AddMessDetails() {
           updateData 
         }))
         if(res.payload.success){
+          localStorage.removeItem('editMessData');
           toast.success(res.payload.message)
         }
         
