@@ -1,10 +1,15 @@
-
 import MessGallery from "@/components/Common/MessGallery ";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getMessById } from "@/store/mess/messSlice";
-import { Bookmark } from "lucide-react";
+import { sendMessViewRequest } from "@/store/mess/requestMessSlice";
+import { checkMessSaved, saveMess, unsaveMess } from "@/store/mess/saveMessSlice";
+import { Bookmark, BookmarkCheck, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router";
@@ -13,25 +18,43 @@ import { toast } from "react-toastify";
 const SingleMess = () => {
   const { messId } = useParams();
   const { currentMess, isLoading } = useSelector((state) => state.mess);
+  const {loading, checkedMesses} = useSelector((state) => state.save);
+  console.log(currentMess?.owner_id?._id)
   const dispatch = useDispatch();
-  const [hasFetched, setHasFetched] = useState(false);
-
   useEffect(() => {
-    // Only fetch if we have a messId and haven't fetched yet
-    if (messId && !hasFetched) {
+   
       dispatch(getMessById(messId));
-      setHasFetched(true);
-    }
-  }, [dispatch, messId, hasFetched]);
-
-  // Reset hasFetched when messId changes
-  useEffect(() => {
-    setHasFetched(false);
-  }, [messId]);
-
-  const handleRequest = () => {
-    toast.info("Request Sent! Owner will contact you soon.");
-  };
+      dispatch(checkMessSaved(messId));
+  }, []);
+  const handleRequest = async () => {
+  try {
+    await dispatch(sendMessViewRequest({ messId, ownerId: currentMess?.owner_id?._id })).unwrap();
+    toast.success("Request sent successfully! Owner will contact you.");
+  } catch (error) {
+    toast.error(`Failed to send request: ${error}`);
+  }
+};
+const handleBookmark = () => { 
+    dispatch(saveMess(messId)).then(res=>{
+      if(res?.payload?.success){
+        toast.success(res?.payload?.message);
+      }else{
+        console.log(res);
+        
+        toast.error(res?.payload);
+      };
+    });
+}
+const handelUnsaveBookmark = () =>{
+        dispatch(unsaveMess(messId)).then(res=>{
+      if(res?.payload?.success){
+        toast.success(res?.payload?.message);
+      }else{
+        console.log(res);
+        
+        toast.error(res?.payload);
+   }}) 
+}
 
   const handleBookNow = () => {
     toast.success("Booking initiated! You'll be contacted shortly.");
@@ -87,11 +110,19 @@ const SingleMess = () => {
                 {currentMess?.genderPreference}
               </span>
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <Bookmark className="capitalize cursor-pointer" />
+                <TooltipTrigger asChild  className="capitalize cursor-pointer" >
+                  <div className="flex gap-2 items-center justify-center">
+                    {
+                      checkedMesses[messId] ? <Heart onClick={()=> handelUnsaveBookmark()} strokeWidth={1.5} className="text-red-500 " fill="currentColor"/> : <Bookmark onClick={() => handleBookmark()}/>
+                    }
+                    <Spinner className={`size-5 text-sky-500 ${loading ? 'block' : 'hidden'}`} />
+                  </div>
+                  
                 </TooltipTrigger>
                 <TooltipContent>
-                  <span>Save Mess</span>
+                  <div>
+                    {checkedMesses[messId] ? "Saved" : "Save mess"}
+                  </div>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -208,7 +239,14 @@ const SingleMess = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Status</span>
-                  <span className="text-green-600 font-medium capitalize">
+                  <span className={`${currentMess?.status === "booked"
+                    ? "bg-red-500"
+                    : currentMess?.status === "in progress"
+                    ? "bg-blue-500"
+                    : currentMess?.status === "pending"
+                    ? "text-yellow-500"
+                    : "text-green-500"
+                  } font-medium capitalize`}>
                     {currentMess?.status}
                   </span>
                 </div>
@@ -265,7 +303,7 @@ const SingleMess = () => {
           </div>
         </div>
 
-          {/* Review & Additional Information */}
+        {/* Review & Additional Information */}
         <div className="mt-8 bg-white p-6 rounded-lg shadow-sm">
           <h3 className="text-[#0d171b] text-lg font-bold mb-6">
             Reviews & Additional Information
@@ -323,16 +361,15 @@ const SingleMess = () => {
                 </li>
                 <li className="flex justify-between">
                   <span>Status:</span>
-                  <span
-                    className={`font-medium capitalize ${
-                      currentMess?.status === "free"
-                        ? "text-green-600"
-                        : currentMess?.status === "booked"
-                        ? "text-red-600"
-                        : "text-yellow-600"
-                    }`}
-                  >
-                    {currentMess?.status || "N/A"}
+                  <span className={`${currentMess?.status === "booked"
+                    ? "bg-red-500"
+                    : currentMess?.status === "in progress"
+                    ? "bg-blue-500"
+                    : currentMess?.status === "pending"
+                    ? "text-yellow-500"
+                    : "text-green-500"
+                  } font-medium capitalize`}>
+                    {currentMess?.status}
                   </span>
                 </li>
               </ul>
@@ -572,7 +609,8 @@ const SingleMess = () => {
           </div>
         </div>
       </div>
-    </div>);
+    </div>
+  );
 };
 
 export default SingleMess;

@@ -53,7 +53,7 @@ const getStatusDisplayText = (status) => {
     booked: "Booked",
     pending: "Pending",
     'in progress': "In Progress",
-    in_progress: "In Progress" // backup for both formats
+    in_progress: "In Progress" 
   };
   return statusMap[status] || "Available";
 };

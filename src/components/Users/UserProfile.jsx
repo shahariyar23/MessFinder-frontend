@@ -9,12 +9,15 @@ import { sidebarLinks } from "@/config/config";
 import { HelpCircle } from "lucide-react";
 import { useParams } from "react-router";
 import Messlisting from "../Booking/MessListing";
+import RequestView from "../Booking/RequestView";
+import { useSelector } from "react-redux";
 
 
 
 const UserProfile = () => {
     
     const [activeTab, setActiveTab] = useState("booking");
+    const {user} = useSelector(state => state.auth);
     return (
         <div className="min-h-screen w-full bg-slate-50 ">
             <Tabs
@@ -25,7 +28,7 @@ const UserProfile = () => {
             >
                 <div className="flex flex-col lg:flex-row min-h-screen  w-full">
                     {/* Sidebar */}
-                    <aside className="flex flex-col pt-20 lg:w-80 w-full border-r lg:min-h-[700px] bg-slate-50 p-4 gap-y-9 lg:gap-0 lg:justify-between">
+                    <aside className="flex flex-col pt-24 lg:w-80 w-full border-r lg:min-h-[700px] bg-slate-50 p-4 gap-y-9 lg:gap-0 lg:justify-between">
                         <div>
                             <TabsList className="flex flex-col gap-2 w-full bg-transparent">
                                 {sidebarLinks.map(link => {
@@ -43,7 +46,8 @@ const UserProfile = () => {
                                                 strokeWidth={activeTab === link.value ? 2.5 : 2}
                                                 fill={activeTab === link.value ? "#0d171b" : "none"}
                                             />
-                                            <span className="text-[#0d171b] text-sm font-medium leading-normal">{link.label}</span>
+                                            <span className="text-[#0d171b] text-sm font-medium leading-normal">{ link.label
+                                                }</span>
                                         </TabsTrigger>
                                     );
                                 })}
@@ -65,6 +69,9 @@ const UserProfile = () => {
                         </TabsContent>
                         <TabsContent value="list">
                             <Messlisting/>
+                        </TabsContent>
+                        <TabsContent value="request">
+                            <RequestView/>
                         </TabsContent>
                         <TabsContent value="payments">
                             <h2 className="text-[#0d171b] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Saved</h2>

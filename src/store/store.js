@@ -2,6 +2,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./auth/authSlice.js"
 import messReducer from "./mess/messSlice.js"
 import ownerReducer from "./mess/ownerMessSlice.js"
+import requestReducer from "./mess/requestMessSlice.js"
+import saveMessReducer from "./mess/saveMessSlice.js"
 
 
 const store = configureStore({
@@ -10,7 +12,11 @@ const store = configureStore({
 
         mess: messReducer,
 
-        owner: ownerReducer
+        owner: ownerReducer,
+
+        request: requestReducer,
+
+        save: saveMessReducer
     }
 })
 

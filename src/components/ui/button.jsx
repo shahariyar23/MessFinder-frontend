@@ -9,19 +9,21 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "cursor-pointer bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        success:
+          "cursor-pointer bg-green-500 text-white hover:bg-green/90 focus-visible:ring-green/20 dark:focus-visible:ring-green/40 dark:bg-green/60",
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "cursor-pointer border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
-        nav: "bg-sky-500/100 shadow-xs text-primary-foreground hover:text-black border hover:bg-background hover:cursor-pointer",
+          "cursor-pointer hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        link: " cursor-pointer text-primary underline-offset-4 hover:underline",
+        nav: "cursor-pointer bg-sky-500/100 shadow-xs text-primary-foreground hover:text-black border hover:bg-background hover:cursor-pointer",
         login:
-          "border bg-background shadow-xs hover:bg-accent hover:bg-sky-500/100 hover:text-primary-foreground hover:cursor-pointer dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "cursor-pointer border bg-background shadow-xs hover:bg-accent hover:bg-sky-500/100 hover:text-primary-foreground hover:cursor-pointer dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

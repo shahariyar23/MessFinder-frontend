@@ -13,7 +13,6 @@ const UserDashboard = () => {
   useEffect(() => {
     dispatch(getStudentById(userId));
   }, [dispatch]);
-  console.log(user);
   return (
     <div className="flex flex-col max-w-screen-xl mx-auto flex-1 w-full">
       {/* Header & Edit */}

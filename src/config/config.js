@@ -9,7 +9,9 @@ import {
     CloudCheck,
     Home,
     List,
-    ListCheck
+    ListCheck,
+    GitPullRequestCreateArrow,
+    GitPullRequestClosed
 
 } from "lucide-react";
 
@@ -245,6 +247,12 @@ export const sidebarLinks = [
         label: "All Messes",
         icon: List,
         iconFilled: ListCheck,
+    },
+    {
+        value: "request",
+        label: "Request Mess view",
+        icon: GitPullRequestCreateArrow,
+        iconFilled: GitPullRequestClosed,
     },
     {
         value: "payments",
