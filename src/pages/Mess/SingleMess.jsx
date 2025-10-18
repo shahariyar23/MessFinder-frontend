@@ -12,20 +12,25 @@ import { checkMessSaved, saveMess, unsaveMess } from "@/store/mess/saveMessSlice
 import { Bookmark, BookmarkCheck, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { toast } from "react-toastify";
 
 const SingleMess = () => {
   const { messId } = useParams();
   const { currentMess, isLoading } = useSelector((state) => state.mess);
   const {loading, checkedMesses} = useSelector((state) => state.save);
-  console.log(currentMess?.owner_id?._id)
+  console.log(currentMess )
+  const nevigate = useNavigate();
   const dispatch = useDispatch();
+
+
+
   useEffect(() => {
    
       dispatch(getMessById(messId));
       dispatch(checkMessSaved(messId));
   }, []);
+  // request for view mess
   const handleRequest = async () => {
   try {
     await dispatch(sendMessViewRequest({ messId, ownerId: currentMess?.owner_id?._id })).unwrap();
@@ -34,6 +39,8 @@ const SingleMess = () => {
     toast.error(`Failed to send request: ${error}`);
   }
 };
+
+// saved mass 
 const handleBookmark = () => { 
     dispatch(saveMess(messId)).then(res=>{
       if(res?.payload?.success){
@@ -45,6 +52,7 @@ const handleBookmark = () => {
       };
     });
 }
+// unsave mess
 const handelUnsaveBookmark = () =>{
         dispatch(unsaveMess(messId)).then(res=>{
       if(res?.payload?.success){
@@ -55,10 +63,6 @@ const handelUnsaveBookmark = () =>{
         toast.error(res?.payload);
    }}) 
 }
-
-  const handleBookNow = () => {
-    toast.success("Booking initiated! You'll be contacted shortly.");
-  };
 
   if (isLoading) {
     return (
@@ -289,7 +293,7 @@ const handelUnsaveBookmark = () =>{
 
             {/* Action Buttons */}
             <div className="bg-white p-6 rounded-lg shadow-sm space-y-3">
-              <Button className="w-full" variant="nav" onClick={handleBookNow}>
+              <Button className="w-full" variant="nav" onClick={()=> nevigate(`/mess/booking/${currentMess?._id}`)}>
                 Book Now
               </Button>
               <Button

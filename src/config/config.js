@@ -11,7 +11,15 @@ import {
     List,
     ListCheck,
     GitPullRequestCreateArrow,
-    GitPullRequestClosed
+    GitPullRequestClosed,
+    Mail,
+    Phone,
+    KeyRound,
+    UserRoundCheck,
+    FolderPen,
+    Send,
+    Banknote,
+    WalletCards
 
 } from "lucide-react";
 
@@ -23,6 +31,7 @@ export const registerFromControls = [
     placeholder: "Enter your name",
     componentType: "input",
     type: "text",
+    icon: User
   },
   {
     name: "email",
@@ -30,6 +39,7 @@ export const registerFromControls = [
     placeholder: "Enter your email",
     componentType: "input",
     type: "email",
+    icon: Mail
   },
   {
     name: "phonenumber",
@@ -37,6 +47,7 @@ export const registerFromControls = [
     placeholder: "Enter your phone number",
     componentType: "input",
     type: "text",
+    icon: Phone
   },
   {
     name: "password",
@@ -44,6 +55,7 @@ export const registerFromControls = [
     placeholder: "Enter your password",
     componentType: "input",
     type: "password",
+    icon: KeyRound
   },
   {
     name: "confirmPassword",
@@ -51,11 +63,13 @@ export const registerFromControls = [
     placeholder: "Confirm your password",
     componentType: "input",
     type: "password",
+    icone: KeyRound
   },
   {
     name: "role",
     label: "Role",
     componentType: "select",
+    icon: UserRoundCheck,
     placeholder: "Select role",
     options: [
       { id: "student", label: "Student" },
@@ -72,6 +86,7 @@ export const loginFromControls = [
         placeholder: "Enter your email",
         componentType: "input",
         type: "email",
+        icon: Mail
     },
     {
         name: "password",
@@ -79,6 +94,7 @@ export const loginFromControls = [
         placeholder: "Enter your password",
         componentType: "input",
         type: "password",
+        icon: KeyRound
     }
 ]
 
@@ -89,24 +105,28 @@ export const contactFromControls = [
     placeholder: "Enter your name",
     componentType: "input",
     type: "text",
+    icone: User
 },
 {    name: "email",
     label: "Your Email",
     placeholder: "Enter your email",  
     componentType: "input",
     type: "email",
+    icon: Mail
 },
 {    name: "subject",
     label: "Subject",
     placeholder: "Enter the subject",
     componentType: "input",
     type: "text",
+    icon: FolderPen
 },
 {    name: "message",
     label: "Message",
     placeholder: "Enter your message",
     componentType: "textarea",
     type: "text",
+    icon: Send
 }
 ]
 
@@ -202,6 +222,7 @@ export const bookingFromControls = [
     placeholder: "Enter your full name",
     componentType: "input",
     type: "text",
+    icon: User
   },
   {
     name: "phonenumber",
@@ -209,6 +230,7 @@ export const bookingFromControls = [
     placeholder: "Enter your phone number",
     componentType: "input",
     type: "number",
+    icon: Phone
   },
   {
     name:"checkInDate",
@@ -223,10 +245,12 @@ export const bookingFromControls = [
     placeholder: "Enter advance payment amount",
     componentType: "input",
     type: "number",
+    icon: Banknote
   },
   {
     name: "paymentMethod",
     label: "Payment Method",
+    icon: WalletCards,
     componentType: "select",
     options: [
       { id: "online", label: "Digital Payment" },

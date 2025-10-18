@@ -18,44 +18,58 @@ import Protected from "@/pages/Protected/Protected";
 import Root from "@/pages/Root/Root";
 import { createBrowserRouter } from "react-router";
 
-
-
-
-
 export const router = createBrowserRouter([
-    {
-        path: "/",
-        Component: Root,
+  {
+    path: "/",
+    Component: Root,
+    children: [
+      { index: true, Component: Dashboard },
+      { path: "about", Component: About },
+      { path: "contact", Component: Contact },
+      { path: "signup", Component: Signup },
+      { path: "login", Component: Login },
+      {
+        path: "profile/:userId",
+        element: (
+          <Protected>
+            <UserProfile />
+          </Protected>
+        ),
+      },
+      {
+        path: "mess/add",
+        element: (
+          <Protected>
+            <AddMessDetails />
+          </Protected>
+        ),
+      },
+      {
+        path: "mess",
+        Component: MessRoot,
         children: [
-            {index: true, Component: Dashboard},
-            {path: "about", Component: About},
-            {path: "contact", Component: Contact},
-            {path: "signup", Component: Signup},
-            {path: "login", Component: Login},
-            {path: "booking", Component: Booking},
-            {path: "profile/:userId", element: <Protected>
-                <UserProfile/>
-            </Protected>},
-            {path: "mess/add", element: <Protected>
-                <AddMessDetails/>
-            </Protected>},
-            {path: "mess", Component: MessRoot,
-                children: [
-                    {index: true, Component: MessRoot},
-                    {path: "listing", Component: Messlisting},
-                    {path: "info/:messId", Component: SingleMess}
-                ]
-            },
-            {path: "*", Component: NotFound},
-
-        ]
-    },
-    {
-        path: "admin",
-        Component: AdminDashboard,
-        children: [
-            {index: true, Component: AdminDashboard},
-            {path: ":userName/:userId", Component: AdminUserProfile},
-        ]
-    }
+          { index: true, Component: MessRoot },
+          { path: "listing", Component: Messlisting },
+          { path: "info/:messId", Component: SingleMess },
+          {
+            path: "booking/:messId",
+            element: (
+              <Protected>
+                <Booking />
+              </Protected>
+            ),
+          },
+        ],
+      },
+      { path: "*", Component: NotFound },
+    ],
+  },
+  {
+    path: "admin",
+    Component: AdminDashboard,
+    children: [
+      { index: true, Component: AdminDashboard },
+      { path: ":userName/:userId", Component: AdminUserProfile },
+    ],
+  },
 ]);

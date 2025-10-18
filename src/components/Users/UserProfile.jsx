@@ -11,6 +11,7 @@ import { useParams } from "react-router";
 import Messlisting from "../Booking/MessListing";
 import RequestView from "../Booking/RequestView";
 import { useSelector } from "react-redux";
+import SaveMess from "../Booking/SaveMess";
 
 
 
@@ -78,8 +79,7 @@ const UserProfile = () => {
                             <Payment />
                         </TabsContent>
                         <TabsContent value="saved">
-                            <h2 className="text-[#0d171b] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Saved</h2>
-                            <BookingListing />
+                            <SaveMess />
                         </TabsContent>
                         <TabsContent value="profile">
                             <UserDashboard />
