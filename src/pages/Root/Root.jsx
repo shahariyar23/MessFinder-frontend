@@ -8,6 +8,7 @@ import { Spinner } from "@/components/ui/spinner";
 
 const Root = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const {user} = useSelector(state => state.auth)
   const dispatch = useDispatch();
   useEffect(() => {
     setIsLoading(true);
@@ -18,7 +19,7 @@ const Root = () => {
         setIsLoading(false);
       }
     });
-  }, [dispatch]);
+  }, []);
   return (
     <div>
       <Navbar />

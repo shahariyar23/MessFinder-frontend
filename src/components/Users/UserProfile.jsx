@@ -68,9 +68,11 @@ const UserProfile = () => {
                         <TabsContent value="booking">
                             <UserBooking />
                         </TabsContent>
-                        <TabsContent value="list">
+                        {
+                            user?.role === "owner" && (<TabsContent value="list">
                             <Messlisting/>
-                        </TabsContent>
+                        </TabsContent>)
+                        }
                         <TabsContent value="request">
                             <RequestView/>
                         </TabsContent>

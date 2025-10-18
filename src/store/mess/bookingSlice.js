@@ -24,12 +24,13 @@ export const getUserBookings = createAsyncThunk(
   "booking/getUserBookings",
   async (filters = {}, { rejectWithValue }) => {
     try {
-      const { page = 1, limit = 10, status } = filters;
+      const { page = 1, limit = 10, status, type } = filters;
       
       const params = new URLSearchParams();
       params.append('page', page);
       params.append('limit', limit);
       if (status) params.append('status', status);
+      if (type) params.append('type', type); // Add type filter
 
       const response = await axios.get(
         `http://localhost:8000/api/v1/booking/get-user-booking?${params.toString()}`,
@@ -48,12 +49,13 @@ export const getOwnerBookings = createAsyncThunk(
   "booking/getOwnerBookings",
   async ({ ownerId, filters = {} }, { rejectWithValue }) => {
     try {
-      const { page = 1, limit = 10, status } = filters;
+      const { page = 1, limit = 10, status, type } = filters;
       
       const params = new URLSearchParams();
       params.append('page', page);
       params.append('limit', limit);
       if (status) params.append('status', status);
+      if (type) params.append('type', type); // Add type filter
 
       const response = await axios.get(
         `http://localhost:8000/api/v1/booking/get-owner-booking/${ownerId}?${params.toString()}`,
@@ -89,7 +91,7 @@ export const updateBookingStatus = createAsyncThunk(
   "booking/updateBookingStatus",
   async ({ bookingId, bookingStatus }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
+      const response = await axios.patch( // Changed to PATCH
         `http://localhost:8000/api/v1/booking/update-booking-status/${bookingId}`,
         { bookingStatus },
         { withCredentials: true }
@@ -107,7 +109,7 @@ export const updatePaymentStatus = createAsyncThunk(
   "booking/updatePaymentStatus",
   async ({ bookingId, paymentStatus, transactionId }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
+      const response = await axios.patch( // Changed to PATCH
         `http://localhost:8000/api/v1/booking/update-booking-payment-status/${bookingId}`,
         { paymentStatus, transactionId },
         { withCredentials: true }
@@ -125,8 +127,9 @@ export const cancelBooking = createAsyncThunk(
   "booking/cancelBooking",
   async (bookingId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
+      const response = await axios.patch( // Changed to PATCH
         `http://localhost:8000/api/v1/booking/cancel-booking/${bookingId}`,
+        {}, // Empty body since it's a PATCH request
         { withCredentials: true }
       );
       return response.data;
@@ -142,7 +145,7 @@ export const deleteBooking = createAsyncThunk(
   "booking/deleteBooking",
   async (bookingId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(
+      const response = await axios.delete( // Changed to DELETE
         `http://localhost:8000/api/v1/booking/delete-booking/${bookingId}`,
         { withCredentials: true }
       );
@@ -165,8 +168,17 @@ const bookingSlice = createSlice({
     
     // User Bookings States
     userBookings: [],
+    upcomingBookings: [],
+    pastBookings: [],
     userBookingsLoading: false,
     userBookingsError: null,
+    
+    // Booking Counts for Tabs
+    bookingCounts: {
+      upcoming: 0,
+      past: 0,
+      total: 0
+    },
     
     // Owner Bookings States
     ownerBookings: [],
@@ -221,6 +233,8 @@ const bookingSlice = createSlice({
     },
     clearUserBookings: (state) => {
       state.userBookings = [];
+      state.upcomingBookings = [];
+      state.pastBookings = [];
       state.userPagination = {
         currentPage: 1,
         totalPages: 0,
@@ -228,6 +242,11 @@ const bookingSlice = createSlice({
         hasNext: false,
         hasPrev: false,
         limit: 10
+      };
+      state.bookingCounts = {
+        upcoming: 0,
+        past: 0,
+        total: 0
       };
     },
     clearOwnerBookings: (state) => {
@@ -246,22 +265,38 @@ const bookingSlice = createSlice({
       
       // Update in user bookings
       const userIndex = state.userBookings.findIndex(
-        booking => booking._id === bookingId || booking.id === bookingId
+        booking => booking._id === bookingId
       );
       if (userIndex !== -1) {
         state.userBookings[userIndex] = { ...state.userBookings[userIndex], ...updates };
       }
       
+      // Update in upcoming bookings
+      const upcomingIndex = state.upcomingBookings.findIndex(
+        booking => booking._id === bookingId
+      );
+      if (upcomingIndex !== -1) {
+        state.upcomingBookings[upcomingIndex] = { ...state.upcomingBookings[upcomingIndex], ...updates };
+      }
+      
+      // Update in past bookings
+      const pastIndex = state.pastBookings.findIndex(
+        booking => booking._id === bookingId
+      );
+      if (pastIndex !== -1) {
+        state.pastBookings[pastIndex] = { ...state.pastBookings[pastIndex], ...updates };
+      }
+      
       // Update in owner bookings
       const ownerIndex = state.ownerBookings.findIndex(
-        booking => booking._id === bookingId || booking.id === bookingId
+        booking => booking._id === bookingId
       );
       if (ownerIndex !== -1) {
         state.ownerBookings[ownerIndex] = { ...state.ownerBookings[ownerIndex], ...updates };
       }
       
       // Update current booking if it matches
-      if (state.currentBooking && (state.currentBooking._id === bookingId || state.currentBooking.id === bookingId)) {
+      if (state.currentBooking && state.currentBooking._id === bookingId) {
         state.currentBooking = { ...state.currentBooking, ...updates };
       }
     }
@@ -280,9 +315,18 @@ const bookingSlice = createSlice({
         state.createError = null;
         
         // Add to user bookings list
-        const newBooking = action.payload.data || action.payload;
+        const newBooking = action.payload.data;
         if (newBooking) {
           state.userBookings.unshift(newBooking);
+          
+          // Also add to upcoming/past based on checkInDate
+          const now = new Date();
+          const checkInDate = new Date(newBooking.checkInDate);
+          if (checkInDate >= now) {
+            state.upcomingBookings.unshift(newBooking);
+          } else {
+            state.pastBookings.unshift(newBooking);
+          }
         }
       })
       .addCase(createBooking.rejected, (state, action) => {
@@ -299,18 +343,37 @@ const bookingSlice = createSlice({
       .addCase(getUserBookings.fulfilled, (state, action) => {
         state.userBookingsLoading = false;
         state.userBookingsError = null;
-        state.userBookings = action.payload.data?.bookings || action.payload.bookings || [];
         
-        if (action.payload.data?.pagination) {
-          state.userPagination = action.payload.data.pagination;
-        } else if (action.payload.pagination) {
-          state.userPagination = action.payload.pagination;
+        const responseData = action.payload.data;
+        
+        // Set user bookings
+        state.userBookings = responseData.bookings || [];
+        
+        // Set booking counts for tabs
+        if (responseData.counts) {
+          state.bookingCounts = responseData.counts;
         }
+        
+        // Set pagination
+        if (responseData.pagination) {
+          state.userPagination = responseData.pagination;
+        }
+        
+        // Filter into upcoming and past based on backend response
+        const now = new Date();
+        state.upcomingBookings = responseData.bookings.filter(booking => 
+          new Date(booking.checkInDate) >= now
+        );
+        state.pastBookings = responseData.bookings.filter(booking => 
+          new Date(booking.checkInDate) < now
+        );
       })
       .addCase(getUserBookings.rejected, (state, action) => {
         state.userBookingsLoading = false;
         state.userBookingsError = action.payload;
         state.userBookings = [];
+        state.upcomingBookings = [];
+        state.pastBookings = [];
       })
 
       // Get Owner Bookings
@@ -321,12 +384,13 @@ const bookingSlice = createSlice({
       .addCase(getOwnerBookings.fulfilled, (state, action) => {
         state.ownerBookingsLoading = false;
         state.ownerBookingsError = null;
-        state.ownerBookings = action.payload.data?.bookings || action.payload.bookings || [];
         
-        if (action.payload.data?.pagination) {
-          state.ownerPagination = action.payload.data.pagination;
-        } else if (action.payload.pagination) {
-          state.ownerPagination = action.payload.pagination;
+        const responseData = action.payload.data;
+        state.ownerBookings = responseData.bookings || [];
+        
+        // Set pagination
+        if (responseData.pagination) {
+          state.ownerPagination = responseData.pagination;
         }
       })
       .addCase(getOwnerBookings.rejected, (state, action) => {
@@ -343,7 +407,7 @@ const bookingSlice = createSlice({
       .addCase(getBookingById.fulfilled, (state, action) => {
         state.bookingDetailsLoading = false;
         state.bookingDetailsError = null;
-        state.currentBooking = action.payload.data || action.payload;
+        state.currentBooking = action.payload.data;
       })
       .addCase(getBookingById.rejected, (state, action) => {
         state.bookingDetailsLoading = false;
@@ -360,20 +424,26 @@ const bookingSlice = createSlice({
         state.updateStatusLoading = false;
         state.updateStatusError = null;
         
-        const updatedBooking = action.payload.data || action.payload;
+        const updatedBooking = action.payload.data;
         if (updatedBooking) {
-          const bookingId = updatedBooking._id || updatedBooking.id;
+          const bookingId = updatedBooking._id;
           
-          // Update in lists
+          // Update in all lists
           state.userBookings = state.userBookings.map(booking =>
-            (booking._id === bookingId || booking.id === bookingId) ? updatedBooking : booking
+            booking._id === bookingId ? updatedBooking : booking
+          );
+          state.upcomingBookings = state.upcomingBookings.map(booking =>
+            booking._id === bookingId ? updatedBooking : booking
+          );
+          state.pastBookings = state.pastBookings.map(booking =>
+            booking._id === bookingId ? updatedBooking : booking
           );
           state.ownerBookings = state.ownerBookings.map(booking =>
-            (booking._id === bookingId || booking.id === bookingId) ? updatedBooking : booking
+            booking._id === bookingId ? updatedBooking : booking
           );
           
           // Update current booking
-          if (state.currentBooking && (state.currentBooking._id === bookingId || state.currentBooking.id === bookingId)) {
+          if (state.currentBooking && state.currentBooking._id === bookingId) {
             state.currentBooking = updatedBooking;
           }
         }
@@ -392,20 +462,26 @@ const bookingSlice = createSlice({
         state.updatePaymentLoading = false;
         state.updatePaymentError = null;
         
-        const updatedBooking = action.payload.data || action.payload;
+        const updatedBooking = action.payload.data;
         if (updatedBooking) {
-          const bookingId = updatedBooking._id || updatedBooking.id;
+          const bookingId = updatedBooking._id;
           
-          // Update in lists
+          // Update in all lists
           state.userBookings = state.userBookings.map(booking =>
-            (booking._id === bookingId || booking.id === bookingId) ? updatedBooking : booking
+            booking._id === bookingId ? updatedBooking : booking
+          );
+          state.upcomingBookings = state.upcomingBookings.map(booking =>
+            booking._id === bookingId ? updatedBooking : booking
+          );
+          state.pastBookings = state.pastBookings.map(booking =>
+            booking._id === bookingId ? updatedBooking : booking
           );
           state.ownerBookings = state.ownerBookings.map(booking =>
-            (booking._id === bookingId || booking.id === bookingId) ? updatedBooking : booking
+            booking._id === bookingId ? updatedBooking : booking
           );
           
           // Update current booking
-          if (state.currentBooking && (state.currentBooking._id === bookingId || state.currentBooking.id === bookingId)) {
+          if (state.currentBooking && state.currentBooking._id === bookingId) {
             state.currentBooking = updatedBooking;
           }
         }
@@ -424,20 +500,26 @@ const bookingSlice = createSlice({
         state.updateStatusLoading = false;
         state.updateStatusError = null;
         
-        const cancelledBooking = action.payload.data || action.payload;
+        const cancelledBooking = action.payload.data;
         if (cancelledBooking) {
-          const bookingId = cancelledBooking._id || cancelledBooking.id;
+          const bookingId = cancelledBooking._id;
           
-          // Update in lists
+          // Update in all lists
           state.userBookings = state.userBookings.map(booking =>
-            (booking._id === bookingId || booking.id === bookingId) ? cancelledBooking : booking
+            booking._id === bookingId ? cancelledBooking : booking
+          );
+          state.upcomingBookings = state.upcomingBookings.map(booking =>
+            booking._id === bookingId ? cancelledBooking : booking
+          );
+          state.pastBookings = state.pastBookings.map(booking =>
+            booking._id === bookingId ? cancelledBooking : booking
           );
           state.ownerBookings = state.ownerBookings.map(booking =>
-            (booking._id === bookingId || booking.id === bookingId) ? cancelledBooking : booking
+            booking._id === bookingId ? cancelledBooking : booking
           );
           
           // Update current booking
-          if (state.currentBooking && (state.currentBooking._id === bookingId || state.currentBooking.id === bookingId)) {
+          if (state.currentBooking && state.currentBooking._id === bookingId) {
             state.currentBooking = cancelledBooking;
           }
         }
@@ -451,16 +533,22 @@ const bookingSlice = createSlice({
       .addCase(deleteBooking.fulfilled, (state, action) => {
         const bookingId = action.meta.arg;
         
-        // Remove from lists
+        // Remove from all lists
         state.userBookings = state.userBookings.filter(
-          booking => booking._id !== bookingId && booking.id !== bookingId
+          booking => booking._id !== bookingId
+        );
+        state.upcomingBookings = state.upcomingBookings.filter(
+          booking => booking._id !== bookingId
+        );
+        state.pastBookings = state.pastBookings.filter(
+          booking => booking._id !== bookingId
         );
         state.ownerBookings = state.ownerBookings.filter(
-          booking => booking._id !== bookingId && booking.id !== bookingId
+          booking => booking._id !== bookingId
         );
         
         // Clear current booking if it's the deleted one
-        if (state.currentBooking && (state.currentBooking._id === bookingId || state.currentBooking.id === bookingId)) {
+        if (state.currentBooking && state.currentBooking._id === bookingId) {
           state.currentBooking = null;
         }
       });

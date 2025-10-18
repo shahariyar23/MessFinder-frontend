@@ -4,13 +4,6 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
-import { Calendar } from "@/components/ui/calendar";
-import { ChevronDownIcon } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -19,6 +12,9 @@ import {
   SelectValue,
 } from "../ui/select";
 import { cn } from "@/lib/utils";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { Calendar } from "lucide-react";
 
 const CommonFrom = ({
   fromControls,
@@ -30,8 +26,6 @@ const CommonFrom = ({
   className = "",
   gridCols = "1",
 }) => {
-  const [open, setOpen] = useState(false);
-
   const renderInputBycomponentType = (getComponetType) => {
     let element = null;
     const value = fromData[getComponetType.name];
@@ -67,42 +61,30 @@ const CommonFrom = ({
 
       case "date":
         element = (
-          <div className="flex flex-col gap-2">
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="nav"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !value && "text-muted-foreground"
-                  )}
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {value ? (
-                    new Date(value).toLocaleDateString()
-                  ) : (
-                    <span>{getComponetType.placeholder || "Select date"}</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={value ? new Date(value) : undefined}
-                  onSelect={(date) => {
-                    setFromData({
-                      ...fromData,
-                      [getComponetType.name]: date
-                        ? date.toISOString().split("T")[0]
-                        : "",
-                    });
-                    setOpen(false);
-                  }}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
+          <div className="relative w-full">
+            <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+            <DatePicker
+              selected={value ? new Date(value) : null}
+              onChange={(date) => {
+                setFromData({
+                  ...fromData,
+                  [getComponetType.name]: date
+                    ? date.toISOString().split("T")[0]
+                    : "",
+                });
+              }}
+              dateFormat="dd/MM/yyyy"
+              placeholderText={getComponetType.placeholder || "Select date"}
+              className={cn(
+                "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-10 w-full"
+              )}
+              minDate={new Date()}
+              isClearable
+              showYearDropdown
+              scrollableYearDropdown
+              yearDropdownItemNumber={15}
+              wrapperClassName="w-full"
+            />
           </div>
         );
         break;
@@ -217,7 +199,6 @@ const CommonFrom = ({
     return element;
   };
 
-  // Determine grid columns based on screen size
   const getGridCols = () => {
     switch (gridCols) {
       case "1":
@@ -237,8 +218,9 @@ const CommonFrom = ({
         className={cn(
           "grid gap-4 md:gap-6",
           getGridCols(),
-          fromControls.some(control => control.componentType === "checkbox") && 
-            "!grid-cols-1" // Force single column for forms with checkboxes
+          fromControls.some(
+            (control) => control.componentType === "checkbox"
+          ) && "!grid-cols-1"
         )}
       >
         {fromControls.map((controlItem) => (
@@ -246,23 +228,26 @@ const CommonFrom = ({
             key={controlItem.name}
             className={cn(
               "space-y-2",
-              controlItem.componentType === "checkbox" && "flex items-center space-x-2"
+              controlItem.componentType === "checkbox" &&
+                "flex items-center space-x-2"
             )}
           >
-            {controlItem.componentType !== "checkbox" && controlItem.componentType !== "date" && (
-              <Label 
-                htmlFor={controlItem.name} 
+            {controlItem.componentType !== "checkbox" && (
+              <Label
+                htmlFor={controlItem.name}
                 className="text-sm font-medium text-foreground"
               >
                 {controlItem.label}
-                {controlItem.required && <span className="text-destructive ml-1">*</span>}
+                {controlItem.required && (
+                  <span className="text-destructive ml-1">*</span>
+                )}
               </Label>
             )}
             {renderInputBycomponentType(controlItem)}
           </div>
         ))}
       </div>
-      
+
       <Button
         disabled={isButtonDisable}
         type="submit"

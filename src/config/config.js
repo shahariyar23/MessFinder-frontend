@@ -19,7 +19,8 @@ import {
     FolderPen,
     Send,
     Banknote,
-    WalletCards
+    WalletCards,
+    Command
 
 } from "lucide-react";
 
@@ -256,6 +257,30 @@ export const bookingFromControls = [
       { id: "online", label: "Digital Payment" },
       { id: "cash", label: "Hand Cash" },
     ]
+  },
+  {
+    name: "emerName",
+    label: "Emergency Contact Name",
+    placeholder: "Enter your full name",
+    componentType: "input",
+    type: "text",
+    icon: User
+  },
+  {
+    name: "emerNumber",
+    label: "Emergency Contact Number",
+    placeholder: "Enter your phone number",
+    componentType: "input",
+    type: "number",
+    icon: Phone
+  },
+  {
+    name: "relation",
+    label: "Relation",
+    placeholder: "enter the relation with emergency contact",
+    componentType: "input",
+    type: "text",
+    icon: Command
   }
 ];
 

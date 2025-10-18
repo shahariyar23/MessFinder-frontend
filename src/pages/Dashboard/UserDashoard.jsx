@@ -4,6 +4,7 @@ import Payment from "../../components/Booking/Payment";
 import { useEffect } from "react";
 import { getStudentById } from "@/store/auth/authSlice";
 import { useParams } from "react-router";
+import SaveMess from "@/components/Booking/SaveMess";
 
 const UserDashboard = () => {
   const { user } = useSelector((state) => state.auth);
@@ -106,9 +107,7 @@ const UserDashboard = () => {
       <h2 className="text-[#0d171b] text-xl sm:text-2xl font-bold px-4 pb-3 pt-5">
         Saved Listings
       </h2>
-      <div className="p-4">
-        <BookingListing />
-      </div>
+      <SaveMess/>
     </div>
   );
 };
