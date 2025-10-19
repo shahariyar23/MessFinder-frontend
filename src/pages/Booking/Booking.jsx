@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CommonFrom from "@/components/Common/From";
 import { bookingFromControls } from "@/config/config";
 import { ToastContainer, toast, Bounce } from "react-toastify";
@@ -37,7 +37,7 @@ const Booking = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { messId } = useParams();
   const timeoutRef = useRef(null);
-  const nevigate = useNavigate()
+  const nevigate = useNavigate();
   const dispacth = useDispatch();
   const bookingData = {
     mess_id: messId,
@@ -54,16 +54,14 @@ const Booking = () => {
     },
   };
 
-
-
   // Clear timeout when component unmounts
-useEffect(() => {
-  return () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-  };
-}, []);
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -82,11 +80,11 @@ useEffect(() => {
     dispacth(createBooking(bookingData)).then((res) => {
       if (res?.payload?.success) {
         toast.success(res?.payload?.message);
-         timeoutRef.current = setTimeout(() => {
-        nevigate(`/profile/${user?.id}`);
-      }, 3000);
-      }else{
-        toast.error(res?.payload)
+        timeoutRef.current = setTimeout(() => {
+          nevigate(`/profile/${user?.id}`);
+        }, 3000);
+      } else {
+        toast.error(res?.payload);
       }
     });
     // Reset form if needed:

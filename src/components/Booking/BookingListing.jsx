@@ -2,8 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 const BookingListing = ({ bookings, isPastBooking }) => {
+  const [loadingPayments, setLoadingPayments] = useState({});
+  const { user } = useSelector(state => state.auth);
+
   // Format date function
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -46,6 +52,60 @@ const BookingListing = ({ bookings, isPastBooking }) => {
         return "destructive";
       default:
         return "outline";
+    }
+  };
+
+  // Handle Pay Now button click
+  const handlePayNow = async (booking) => {
+    setLoadingPayments(prev => ({ ...prev, [booking._id]: true }));
+
+    try {
+      // FIRST API CALL - Initiate SSL Commerz Payment
+      const response = await fetch('http://localhost:8000/api/v1/payment/ssl-initiate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          bookingId: booking._id,
+          customerInfo: {
+            name: user?.name || booking.tenantName,
+            email: user?.email || booking.tenantEmail,
+            phone: user?.phone || booking.tenantPhone,
+            address: user?.address || booking.mess_id?.address || 'N/A',
+            city: 'Dhaka',
+            postcode: '1200'
+          }
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Redirect to SSL Commerz payment page
+        window.location.href = result.data.paymentUrl;
+      } else {
+        toast.error(`Payment initiation failed: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error('Payment failed. Please check your connection and try again.');
+    } finally {
+      setLoadingPayments(prev => ({ ...prev, [booking._id]: false }));
+    }
+  };
+
+  // Handle Cancel Booking
+  const handleCancelBooking = async (bookingId) => {
+    if (window.confirm("Are you sure you want to cancel this booking?")) {
+      try {
+        // Implement cancel booking logic here
+        console.log("Cancel booking:", bookingId);
+        // You can add your cancel booking API call here
+      } catch (error) {
+        console.error("Cancel booking error:", error);
+      }
     }
   };
 
@@ -139,7 +199,7 @@ const BookingListing = ({ bookings, isPastBooking }) => {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Payment Method:</span>
                     <span className="font-medium capitalize">
-                      {booking.paymentMethod}
+                      {booking.paymentMethod || "Not selected"}
                     </span>
                   </div>
                 </div>
@@ -205,13 +265,13 @@ const BookingListing = ({ bookings, isPastBooking }) => {
                 Owner Information
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div className="flex justify-around">
+                <div className="flex justify-between">
                   <span className="text-gray-600">Owner Name:</span>
                   <span className="font-medium">
                     {booking.owner_id?.name || "N/A"}
                   </span>
                 </div>
-                <div className="flex justify-around">
+                <div className="flex justify-between">
                   <span className="text-gray-600">Owner Phone:</span>
                   <span className="font-medium">
                     {booking.owner_id?.phone || "N/A"}
@@ -227,12 +287,29 @@ const BookingListing = ({ bookings, isPastBooking }) => {
                 <div className="flex flex-wrap gap-2 justify-end">
                   {booking.bookingStatus === "pending" && (
                     <>
-                      <Button variant="destructive" size="sm">
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => handleCancelBooking(booking._id)}
+                      >
                         Cancel Booking
                       </Button>
-                      {booking?.paymentStatus !== "paid" && (
-                        <Button variant="nav" size="sm">
-                          Pay Now
+                      {booking.paymentStatus !== "paid" && (
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          onClick={() => handlePayNow(booking)}
+                          disabled={loadingPayments[booking._id]}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          {loadingPayments[booking._id] ? (
+                            <>
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                              Processing...
+                            </>
+                          ) : (
+                            `Pay Now - ${formatCurrency(booking.payAbleAmount)}`
+                          )}
                         </Button>
                       )}
                     </>
@@ -241,6 +318,13 @@ const BookingListing = ({ bookings, isPastBooking }) => {
                     <Button variant="outline" size="sm">
                       View Details
                     </Button>
+                  )}
+                  
+                  {/* Show payment status for paid bookings */}
+                  {booking.paymentStatus === "paid" && (
+                    <Badge variant="default" className="bg-green-100 text-green-800">
+                      ✅ Payment Completed
+                    </Badge>
                   )}
                 </div>
               </>

@@ -12,6 +12,8 @@ import AddMessDetails from "@/pages/Mess/AddMessDetails";
 import Mess from "@/pages/Mess/Mess";
 import Messlisting from "@/pages/Mess/Messlisting";
 import MessRoot from "@/pages/Mess/MessRoot";
+import { PaymentFailed } from "@/pages/Mess/PaymentFailed";
+import {PaymentSuccess} from "@/pages/Mess/PaymentSuccess";
 import SingleMess from "@/pages/Mess/SingleMess";
 import NotFound from "@/pages/NotFound/NotFound";
 import Protected from "@/pages/Protected/Protected";
@@ -28,6 +30,9 @@ export const router = createBrowserRouter([
       { path: "contact", Component: Contact },
       { path: "signup", Component: Signup },
       { path: "login", Component: Login },
+      { path: "payment/success", Component: PaymentSuccess },
+      { path: "payment/failed", Component: PaymentFailed },
+      { path: "payment/cancel", Component: PaymentFailed },
       {
         path: "profile/:userId",
         element: (
