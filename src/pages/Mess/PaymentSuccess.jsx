@@ -1,27 +1,58 @@
 // components/PaymentSuccess.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Download, Share2, Home, BookOpen, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import jsPDF from 'jspdf';
+import { useSelector } from 'react-redux';
 
 export const PaymentSuccess = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    const {user} = useSelector(state => state.auth)
     const [paymentData, setPaymentData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [downloading, setDownloading] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
     const [error, setError] = useState(null);
+    const [hasReloaded, setHasReloaded] = useState(false);
 
     const tran_id = searchParams.get('tran_id');
+    const timeoutRef = useRef(null);
+    const isMountedRef = useRef(true);
 
-    // Auto-confirm payment directly
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
+
+    // Auto reload after 1.5 seconds on first visit
+    useEffect(() => {
+        if (!hasReloaded && !paymentData && !error) {
+            timeoutRef.current = setTimeout(() => {
+                if (isMountedRef.current) {
+                    console.log('🔄 Auto-reloading page to sync payment status...');
+                    window.location.reload();
+                    setHasReloaded(true);
+                }
+            }, 1500);
+        }
+
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, [hasReloaded, paymentData, error]);
+
     const autoConfirmPayment = async () => {
         try {
-            console.log('🔄 Auto-confirming payment:', tran_id);
-            
             const response = await fetch('http://localhost:8000/api/v1/payment/auto-confirm', {
                 method: 'POST',
                 headers: {
@@ -38,7 +69,6 @@ export const PaymentSuccess = () => {
             }
             
             const result = await response.json();
-            console.log('Auto-confirm Result:', result);
             return result.success;
         } catch (error) {
             console.error('Auto-confirm failed:', error);
@@ -47,6 +77,9 @@ export const PaymentSuccess = () => {
     };
 
     const verifyPayment = async (isRetry = false) => {
+        // Check if component is still mounted
+        if (!isMountedRef.current) return;
+
         if (!tran_id) {
             setError('No transaction ID found');
             setLoading(false);
@@ -67,15 +100,13 @@ export const PaymentSuccess = () => {
                 console.log('Auto-confirm success:', autoConfirmSuccess);
             }
 
-            // Then verify payment status
+            // Then verify payment status - REMOVED CUSTOM HEADERS
+            const timestamp = new Date().getTime(); // For cache busting
             const response = await fetch(
-                `http://localhost:8000/api/v1/payment/validate/${tran_id}`,
+                `http://localhost:8000/api/v1/payment/validate/${tran_id}?t=${timestamp}`,
                 { 
-                    credentials: 'include',
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
+                    credentials: 'include'
+                    // Removed problematic headers
                 }
             );
             
@@ -94,17 +125,18 @@ export const PaymentSuccess = () => {
                     setPaymentData(result.data);
                     setLoading(false);
                     console.log('✅ Payment verified successfully');
-                    return; // Exit early if payment is confirmed
                 } else {
                     // Payment not confirmed yet
-                    if (retryCount < 2) { // Reduced from 3 to 2 attempts
+                    if (retryCount < 2) {
                         console.log('❌ Payment not confirmed, retrying...');
                         
-                        // Retry after 1.5 seconds
-                        setTimeout(() => {
-                            setRetryCount(prev => prev + 1);
-                            verifyPayment(true);
-                        }, 1500);
+                        // Use ref for timeout to prevent multiple timeouts
+                        timeoutRef.current = setTimeout(() => {
+                            if (isMountedRef.current) {
+                                setRetryCount(prev => prev + 1);
+                                verifyPayment(true);
+                            }
+                        }, 3500);
                     } else {
                         // After max retries, show the page anyway with current status
                         setPaymentData(result.data);
@@ -119,9 +151,11 @@ export const PaymentSuccess = () => {
         } catch (error) {
             console.error('Error verifying payment:', error);
             if (retryCount < 1) {
-                setTimeout(() => {
-                    setRetryCount(prev => prev + 1);
-                    verifyPayment(true);
+                timeoutRef.current = setTimeout(() => {
+                    if (isMountedRef.current) {
+                        setRetryCount(prev => prev + 1);
+                        verifyPayment(true);
+                    }
                 }, 1500);
             } else {
                 setError('Failed to verify payment. Please check your connection.');
@@ -131,101 +165,152 @@ export const PaymentSuccess = () => {
     };
 
     useEffect(() => {
-        verifyPayment();
-    }, [tran_id]);
+        // Only run verification once when component mounts
+        if (tran_id && !paymentData && !error) {
+            verifyPayment();
+        }
+    }, [tran_id]); // Only depend on tran_id
 
     const handleRetry = () => {
+        // Clear any existing timeouts
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        
         setRetryCount(0);
         setError(null);
+        setPaymentData(null);
+        setHasReloaded(false); // Reset reload flag for retry
         setLoading(true);
         verifyPayment();
     };
 
-    // If we have payment data but it's still loading, show the data anyway
-    if (paymentData && loading) {
-        setLoading(false);
-    }
-
-    const generateReceiptPDF = () => {
-        setDownloading(true);
+const generateReceiptPDF = () => {
+    setDownloading(true);
+    
+    try {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
         
-        try {
-            const doc = new jsPDF();
-            const pageWidth = doc.internal.pageSize.getWidth();
-            
-            // Add logo/header
-            doc.setFontSize(20);
+        // Simple and clean design
+        doc.setFillColor(34, 197, 94);
+        doc.rect(0, 0, pageWidth, 60, 'F');
+        
+        // Header
+        doc.setFontSize(24);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.text('MessFinder', pageWidth / 2, 20, { align: 'center' });
+        
+        doc.setFontSize(16);
+        doc.text('PAYMENT RECEIPT', pageWidth / 2, 35, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.text(`Receipt: ${tran_id}`, pageWidth / 2, 47, { align: 'center' });
+        
+        let yPosition = 75;
+        
+        // Payment Information
+        doc.setFontSize(12);
+        doc.setTextColor(34, 197, 94);
+        doc.text('Payment Information', 20, yPosition);
+        
+        yPosition += 10;
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        
+        const sections = [
+            {
+                title: 'Payment Details',
+                data: [
+                    ['Transaction ID', tran_id],
+                    ['Payment Date', new Date().toLocaleDateString()],
+                    ['Payment Method', paymentData?.paymentMethod?.toUpperCase() || 'SSLCOMMERZ'],
+                    ['Status', 'PAID']
+                ]
+            },
+            {
+                title: 'Booking Information',
+                data: [
+                    ['Mess Name', paymentData?.messName || 'Mostak Shahariyar'],
+                    ['Check-in Date', paymentData?.checkInDate ? new Date(paymentData.checkInDate).toLocaleDateString() : '30/10/2025'],
+                    ['Booking Status', (paymentData?.bookingStatus || 'confirmed').toUpperCase()]
+                ]
+            },
+            {
+                title: 'Tenant Information',
+                data: [
+                    ['Name', paymentData?.customerName || 'Mostak'],
+                    ['Email', paymentData?.customerEmail || 'mostak420@gmail.com'],
+                    ['Phone', paymentData?.customerPhone || '01761208866']
+                ]
+            }
+        ];
+        
+        sections.forEach(section => {
+            doc.setFontSize(11);
             doc.setTextColor(34, 197, 94);
-            doc.text('MessFinder', pageWidth / 2, 20, { align: 'center' });
+            doc.setFont('helvetica', 'bold');
+            doc.text(section.title, 20, yPosition);
+            yPosition += 7;
             
-            doc.setFontSize(16);
-            doc.setTextColor(0, 0, 0);
-            doc.text('PAYMENT RECEIPT', pageWidth / 2, 35, { align: 'center' });
-            
-            // Add receipt details
             doc.setFontSize(10);
-            let yPosition = 50;
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
             
-            const leftColumn = 20;
-            const rightColumn = 120;
-            
-            // Payment Information
-            doc.setFont(undefined, 'bold');
-            doc.text('Payment Information:', leftColumn, yPosition);
-            doc.setFont(undefined, 'normal');
-            
-            yPosition += 8;
-            doc.text(`Receipt No:`, leftColumn, yPosition);
-            doc.text(`${tran_id}`, rightColumn, yPosition);
-            
-            yPosition += 6;
-            doc.text(`Payment Date:`, leftColumn, yPosition);
-            doc.text(`${new Date().toLocaleDateString()}`, rightColumn, yPosition);
-            
-            yPosition += 6;
-            doc.text(`Payment Status:`, leftColumn, yPosition);
-            doc.text(paymentData?.paymentStatus === 'paid' ? 'PAID' : 'PENDING', rightColumn, yPosition);
-            
-            yPosition += 10;
-            
-            // Booking Information
-            doc.setFont(undefined, 'bold');
-            doc.text('Booking Information:', leftColumn, yPosition);
-            doc.setFont(undefined, 'normal');
-            
-            yPosition += 8;
-            doc.text(`Mess Name:`, leftColumn, yPosition);
-            doc.text(`${paymentData?.messName || 'N/A'}`, rightColumn, yPosition);
-            
-            yPosition += 6;
-            doc.text(`Booking Status:`, leftColumn, yPosition);
-            doc.text(`${paymentData?.bookingStatus?.toUpperCase() || 'PENDING'}`, rightColumn, yPosition);
-            
-            yPosition += 6;
-            doc.text(`Amount Paid:`, leftColumn, yPosition);
-            doc.text(`BDT ${paymentData?.amount || '0'}`, rightColumn, yPosition);
-            
-            yPosition += 15;
-            
-            // Footer
-            doc.setFontSize(8);
-            doc.setTextColor(100, 100, 100);
-            doc.text('This is a computer-generated receipt. No signature is required.', pageWidth / 2, yPosition, { align: 'center' });
+            section.data.forEach(([label, value]) => {
+                doc.text(`${label}:`, 20, yPosition);
+                doc.text(value, 80, yPosition);
+                yPosition += 6;
+            });
             
             yPosition += 5;
-            doc.text('Thank you for choosing MessFinder!', pageWidth / 2, yPosition, { align: 'center' });
-            
-            // Save the PDF
-            const fileName = `receipt-${tran_id}.pdf`;
-            doc.save(fileName);
-            
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            alert('Failed to generate receipt. Please try again.');
-        } finally {
-            setDownloading(false);
-        }
-    };
+        });
+        
+        // Amount Summary
+        yPosition += 5;
+        doc.setDrawColor(34, 197, 94);
+        doc.line(20, yPosition, pageWidth - 20, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(12);
+        doc.setTextColor(34, 197, 94);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Amount Summary', 20, yPosition);
+        yPosition += 10;
+        
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Monthly Rent: BDT ${paymentData?.monthlyRent || '5000'}`, 20, yPosition);
+        yPosition += 6;
+        doc.text(`Advance Months: ${paymentData?.advanceMonths || '1'} month(s)`, 20, yPosition);
+        yPosition += 6;
+        doc.text(`Advance Amount: BDT ${paymentData?.amount || '2000'}`, 20, yPosition);
+        yPosition += 8;
+        
+        doc.setFontSize(12);
+        doc.setTextColor(34, 197, 94);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Total Paid: BDT ${paymentData?.amount || '2000'}`, 20, yPosition);
+        
+        // Footer
+        yPosition += 20;
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text('This is a computer-generated receipt. No signature is required.', pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 4;
+        doc.text('Thank you for choosing MessFinder!', pageWidth / 2, yPosition, { align: 'center' });
+        
+        const fileName = `MessFinder-Receipt-${tran_id}.pdf`;
+        doc.save(fileName);
+        
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Failed to generate receipt. Please try again.');
+    } finally {
+        setDownloading(false);
+    }
+};
 
     const handleDownloadReceipt = () => {
         generateReceiptPDF();
@@ -258,6 +343,11 @@ export const PaymentSuccess = () => {
                             : 'Please wait while we confirm your payment...'
                         }
                     </p>
+                    {!hasReloaded && (
+                        <p className="text-sm text-blue-500 mt-2">
+                            Page will reload automatically to sync payment status...
+                        </p>
+                    )}
                     {tran_id && (
                         <p className="text-sm text-gray-400 mt-2">
                             Transaction: {tran_id}
@@ -288,14 +378,14 @@ export const PaymentSuccess = () => {
                     )}
                     <div className="flex gap-3 justify-center">
                         <Button 
-                            onClick={()=>{handleRetry()}}
+                            onClick={handleRetry}
                             className="bg-yellow-600 hover:bg-yellow-700 text-white"
                         >
                             <RefreshCw className="w-4 h-4 mr-2" />
                             Check Again
                         </Button>
                         <Button 
-                            onClick={() => navigate('/bookings')}
+                            onClick={() => navigate(`/profile/${user.id}`)}
                             variant="outline"
                         >
                             View Bookings
@@ -362,7 +452,7 @@ export const PaymentSuccess = () => {
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row gap-3 mt-8 justify-center">
                             <Button 
-                                onClick={() => navigate('/bookings')}
+                                onClick={() => navigate(`/profile/${user.id}`)}
                                 className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
                             >
                                 <BookOpen className="w-4 h-4" />

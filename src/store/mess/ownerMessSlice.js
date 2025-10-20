@@ -99,17 +99,28 @@ export const getOwnerMessStats = createAsyncThunk(
 // Update mess status (free, booked, in progress)
 export const updateMessStatus = createAsyncThunk(
   "ownerMess/updateMessStatus",
-  async ({ messId, status }, { rejectWithValue }) => {
+  async ({ mess_id, status }, { rejectWithValue }) => {
+    console.log("Sending data:", { mess_id, status });
+    console.log("Data types:", { 
+      mess_id_type: typeof mess_id, 
+      status_type: typeof status 
+    });
+    
     try {
-      const response = await axios.patch(
-        `http://localhost:8000/api/v1/owner/get-all-messes/${ownerId}`,
-        { status },
+      const response = await axios.put(
+        `http://localhost:8000/api/v1/owner/update-mess-status`,
+        { mess_id, status },
         {
           withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          }
         }
       );
+      console.log("Response:", response);
       return response.data;
     } catch (error) {
+      console.error("Error details:", error);
       return rejectWithValue(
         error.response?.data || {
           success: false,

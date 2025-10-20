@@ -3,6 +3,9 @@ import About from "@/pages/About/About";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import AdminRoot from "@/pages/Admin/AdminRoot";
 import AdminUserProfile from "@/pages/Admin/AdminUserProfile";
+import ForgotPassword from "@/pages/Auth/ForgotPassword/ForgotPassword";
+import ResetPassword from "@/pages/Auth/ForgotPassword/ResetPassword";
+import VerifyOTP from "@/pages/Auth/ForgotPassword/VerifyOtp";
 import Login from "@/pages/Auth/Login/Login";
 import Signup from "@/pages/Auth/Signup/Signup";
 import Booking from "@/pages/Booking/Booking";
@@ -30,6 +33,9 @@ export const router = createBrowserRouter([
       { path: "contact", Component: Contact },
       { path: "signup", Component: Signup },
       { path: "login", Component: Login },
+      { path: "forgot-password", Component: ForgotPassword },
+      { path: "verify-otp", Component: VerifyOTP },
+      { path: "reset-password", Component: ResetPassword },
       { path: "payment/success", Component: PaymentSuccess },
       { path: "payment/failed", Component: PaymentFailed },
       { path: "payment/cancel", Component: PaymentFailed },

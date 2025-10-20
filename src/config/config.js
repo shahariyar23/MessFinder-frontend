@@ -99,6 +99,40 @@ export const loginFromControls = [
     }
 ]
 
+export const forgotPasswordControls = [
+    {
+      label: "Email",
+      placeholder: "Enter your email",
+      type: "email",
+      componentType: "input",
+      name: "email",
+      id: "email",
+      required: true,
+      icon: Mail
+    }
+];
+
+export   const resetPasswordControls = [
+    {
+      label: "New Password",
+      placeholder: "Enter your new password",
+      type: "password",
+      componentType: "input",
+      name: "newPassword",
+      id: "newPassword",
+      required: true
+    },
+    {
+      label: "Confirm Password",
+      placeholder: "Confirm your new password",
+      type: "password",
+      componentType: "input",
+      name: "confirmPassword",
+      id: "confirmPassword",
+      required: true
+    }
+];
+
 export const contactFromControls = [
 {
     name: "name",

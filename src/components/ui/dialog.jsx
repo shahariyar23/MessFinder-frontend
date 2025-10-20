@@ -84,6 +84,13 @@ function DialogHeader({
       {...props} />
   );
 }
+function DialogBody({ children, className = "" }) {
+  return (
+    <div className={`p-6 ${className}`}>
+      {children}
+    </div>
+  )
+}
 
 function DialogFooter({
   className,
@@ -131,5 +138,6 @@ export {
   DialogOverlay,
   DialogPortal,
   DialogTitle,
+  DialogBody,
   DialogTrigger,
 }

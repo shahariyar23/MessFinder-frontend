@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { checkAuth } from "@/store/auth/authSlice";
 import { Spinner } from "@/components/ui/spinner";
+import { Bounce, ToastContainer } from "react-toastify";
 
 const Root = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +32,19 @@ const Root = () => {
         <Outlet />
       )}
       <Footer />
+      <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick={false}
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+                transition={Bounce}
+            />
     </div>
   );
 };

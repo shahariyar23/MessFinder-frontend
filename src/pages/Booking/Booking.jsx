@@ -114,7 +114,7 @@ const Booking = () => {
           fromData={formData}
           setFromData={setFormData}
           onSubmit={handleSubmit}
-          buttonText="Book Now"
+          buttonText={ createLoading ? <><Spinner/> "Book Now"</> : "Book Now"}
           isButtonDisable={isFormIncomplete}
         />
 

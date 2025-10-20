@@ -55,7 +55,7 @@ const Login = () => {
           Don&apos;t have an account? <Link to="/signup" className="underline hover:text-[#13a4ec]">Sign Up</Link>
         </p>
         <p className="text-[#4c809a] text-sm text-center mt-5">
-           <Link to="/signup" className="underline hover:text-[#13a4ec]">FSorgot password</Link>
+           <Link to="/forgot-password" className="underline hover:text-[#13a4ec]">Forgot password</Link>
         </p>
       </div>
     </div>

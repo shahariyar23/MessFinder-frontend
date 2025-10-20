@@ -8,7 +8,11 @@ import {
 } from "@/components/ui/tooltip";
 import { getMessById } from "@/store/mess/messSlice";
 import { sendMessViewRequest } from "@/store/mess/requestMessSlice";
-import { checkMessSaved, saveMess, unsaveMess } from "@/store/mess/saveMessSlice";
+import {
+  checkMessSaved,
+  saveMess,
+  unsaveMess,
+} from "@/store/mess/saveMessSlice";
 import { Bookmark, BookmarkCheck, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,51 +22,51 @@ import { toast } from "react-toastify";
 const SingleMess = () => {
   const { messId } = useParams();
   const { currentMess, isLoading } = useSelector((state) => state.mess);
-  const {loading, checkedMesses} = useSelector((state) => state.save);
-  console.log(currentMess )
+  const { loading, checkedMesses } = useSelector((state) => state.save);
+  console.log(currentMess);
   const nevigate = useNavigate();
   const dispatch = useDispatch();
 
-
-
   useEffect(() => {
-   
-      dispatch(getMessById(messId));
-      dispatch(checkMessSaved(messId));
+    dispatch(getMessById(messId));
+    dispatch(checkMessSaved(messId));
   }, []);
   // request for view mess
   const handleRequest = async () => {
-  try {
-    await dispatch(sendMessViewRequest({ messId, ownerId: currentMess?.owner_id?._id })).unwrap();
-    toast.success("Request sent successfully! Owner will contact you.");
-  } catch (error) {
-    toast.error(`Failed to send request: ${error}`);
-  }
-};
+    try {
+      await dispatch(
+        sendMessViewRequest({ messId, ownerId: currentMess?.owner_id?._id })
+      ).unwrap();
+      toast.success("Request sent successfully! Owner will contact you.");
+    } catch (error) {
+      toast.error(`Failed to send request: ${error}`);
+    }
+  };
 
-// saved mass 
-const handleBookmark = () => { 
-    dispatch(saveMess(messId)).then(res=>{
-      if(res?.payload?.success){
+  // saved mass
+  const handleBookmark = () => {
+    dispatch(saveMess(messId)).then((res) => {
+      if (res?.payload?.success) {
         toast.success(res?.payload?.message);
-      }else{
+      } else {
         console.log(res);
-        
+
         toast.error(res?.payload);
-      };
+      }
     });
-}
-// unsave mess
-const handelUnsaveBookmark = () =>{
-        dispatch(unsaveMess(messId)).then(res=>{
-      if(res?.payload?.success){
+  };
+  // unsave mess
+  const handelUnsaveBookmark = () => {
+    dispatch(unsaveMess(messId)).then((res) => {
+      if (res?.payload?.success) {
         toast.success(res?.payload?.message);
-      }else{
+      } else {
         console.log(res);
-        
+
         toast.error(res?.payload);
-   }}) 
-}
+      }
+    });
+  };
 
   if (isLoading) {
     return (
@@ -114,19 +118,27 @@ const handelUnsaveBookmark = () =>{
                 {currentMess?.genderPreference}
               </span>
               <Tooltip>
-                <TooltipTrigger asChild  className="capitalize cursor-pointer" >
+                <TooltipTrigger asChild className="capitalize cursor-pointer">
                   <div className="flex gap-2 items-center justify-center">
-                    {
-                      checkedMesses[messId] ? <Heart onClick={()=> handelUnsaveBookmark()} strokeWidth={1.5} className="text-red-500 " fill="currentColor"/> : <Bookmark onClick={() => handleBookmark()}/>
-                    }
-                    <Spinner className={`size-5 text-sky-500 ${loading ? 'block' : 'hidden'}`} />
+                    {checkedMesses[messId] ? (
+                      <Heart
+                        onClick={() => handelUnsaveBookmark()}
+                        strokeWidth={1.5}
+                        className="text-red-500 "
+                        fill="currentColor"
+                      />
+                    ) : (
+                      <Bookmark onClick={() => handleBookmark()} />
+                    )}
+                    <Spinner
+                      className={`size-5 text-sky-500 ${
+                        loading ? "block" : "hidden"
+                      }`}
+                    />
                   </div>
-                  
                 </TooltipTrigger>
                 <TooltipContent>
-                  <div>
-                    {checkedMesses[messId] ? "Saved" : "Save mess"}
-                  </div>
+                  <div>{checkedMesses[messId] ? "Saved" : "Save mess"}</div>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -243,14 +255,17 @@ const handelUnsaveBookmark = () =>{
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Status</span>
-                  <span className={`${currentMess?.status === "booked"
-                    ? "bg-red-500"
-                    : currentMess?.status === "in progress"
-                    ? "bg-blue-500"
-                    : currentMess?.status === "pending"
-                    ? "text-yellow-500"
-                    : "text-green-500"
-                  } font-medium capitalize`}>
+                  <span
+                    className={`${
+                      currentMess?.status === "booked"
+                        ? "text-red-500"
+                        : currentMess?.status === "in progress px-1"
+                        ? "text-blue-500"
+                        : currentMess?.status === "pending"
+                        ? "text-yellow-500"
+                        : "text-green-500"
+                    } font-medium capitalize`}
+                  >
                     {currentMess?.status}
                   </span>
                 </div>
@@ -292,18 +307,25 @@ const handelUnsaveBookmark = () =>{
             </div>
 
             {/* Action Buttons */}
-            <div className="bg-white p-6 rounded-lg shadow-sm space-y-3">
-              <Button className="w-full" variant="nav" onClick={()=> nevigate(`/mess/booking/${currentMess?._id}`)}>
-                Book Now
-              </Button>
-              <Button
-                className="w-full"
-                variant="login"
-                onClick={handleRequest}
-              >
-                Request to View Mess
-              </Button>
-            </div>
+            {currentMess?.status === "free" && (
+              <div className="bg-white p-6 rounded-lg shadow-sm space-y-3">
+                <Button
+                  className="w-full"
+                  variant="nav"
+                  onClick={() => nevigate(`/mess/booking/${currentMess?._id}`)}
+                >
+                  Book Now
+                </Button>
+
+                <Button
+                  className="w-full"
+                  variant="login"
+                  onClick={handleRequest}
+                >
+                  Request to View Mess
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -365,14 +387,17 @@ const handelUnsaveBookmark = () =>{
                 </li>
                 <li className="flex justify-between">
                   <span>Status:</span>
-                  <span className={`${currentMess?.status === "booked"
-                    ? "bg-red-500"
-                    : currentMess?.status === "in progress"
-                    ? "bg-blue-500"
-                    : currentMess?.status === "pending"
-                    ? "text-yellow-500"
-                    : "text-green-500"
-                  } font-medium capitalize`}>
+                  <span
+                    className={`${
+                      currentMess?.status === "booked"
+                        ? " text-red-500"
+                        : currentMess?.status === "in progress"
+                        ? " text-blue-500 "
+                        : currentMess?.status === "pending"
+                        ? "text-yellow-500 "
+                        : "text-green-500"
+                    } font-medium capitalize`}
+                  >
                     {currentMess?.status}
                   </span>
                 </li>

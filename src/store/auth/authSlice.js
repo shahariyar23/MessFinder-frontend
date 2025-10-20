@@ -79,6 +79,7 @@ export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
 export const generateResetCode = createAsyncThunk(
   "auth/generateResetCode",
   async (email) => {
+    console.group(email)
     try {
       const response = await axios.post(
         "http://localhost:8000/api/v1/user/forgot-password",
@@ -97,6 +98,7 @@ export const generateResetCode = createAsyncThunk(
 export const verifyResetCode = createAsyncThunk(
   "auth/verifyResetCode",
   async ({ email, code }) => {
+    console.log(email, code)
     try {
       const response = await axios.post(
         "http://localhost:8000/api/v1/user/verify-code",
@@ -114,11 +116,11 @@ export const verifyResetCode = createAsyncThunk(
 // Reset Password
 export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
-  async ({ resetToken, newPassword }) => {
+  async ({ email, code, newPassword }) => {
     try {
       const response = await axios.post(
         "http://localhost:8000/api/v1/user/reset-password",
-        { resetToken, newPassword }
+        { email, code, newPassword }
       );
       return response.data;
     } catch (error) {
