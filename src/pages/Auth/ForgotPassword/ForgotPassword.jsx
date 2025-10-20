@@ -27,10 +27,6 @@ const ForgotPassword = () => {
         toast.error(`${res?.payload?.message}`);
       }
     });
-    
-    // For now, simulate success and navigate to OTP page
-    toast.success("Reset password email sent successfully!");
-    navigate("/verify-otp", { state: { email: formData.email } });
   };
 
   

@@ -28,7 +28,7 @@ export const getMessesByOwnerId = createAsyncThunk(
 export const updateMess = createAsyncThunk(
   "ownerMess/updateMess",
   async ({ messId, updateData }, { rejectWithValue }) => {
-    console.log(messId, updateData);
+    // console.log(messId, updateData);
     try {
       const response = await axios.put(
         `http://localhost:8000/api/v1/mess/update-mess/${messId}`,
@@ -37,7 +37,7 @@ export const updateMess = createAsyncThunk(
           withCredentials: true,
         }
       );
-      console.log(response.data);
+      // console.log(response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -100,11 +100,11 @@ export const getOwnerMessStats = createAsyncThunk(
 export const updateMessStatus = createAsyncThunk(
   "ownerMess/updateMessStatus",
   async ({ mess_id, status }, { rejectWithValue }) => {
-    console.log("Sending data:", { mess_id, status });
-    console.log("Data types:", { 
-      mess_id_type: typeof mess_id, 
-      status_type: typeof status 
-    });
+    // console.log("Sending data:", { mess_id, status });
+    // console.log("Data types:", { 
+    //   mess_id_type: typeof mess_id, 
+    //   status_type: typeof status 
+    // });
     
     try {
       const response = await axios.put(
@@ -117,7 +117,7 @@ export const updateMessStatus = createAsyncThunk(
           }
         }
       );
-      console.log("Response:", response);
+      // console.log("Response:", response);
       return response.data;
     } catch (error) {
       console.error("Error details:", error);
@@ -262,7 +262,6 @@ const ownerMessSlice = createSlice({
       })
       .addCase(getMessesByOwnerId.fulfilled, (state, action) => {
         state.isLoading = false;
-        console.log(action.payload);
         if (action.payload.success) {
           state.ownerMesses = action.payload.data.messes || [];
 
@@ -287,7 +286,7 @@ const ownerMessSlice = createSlice({
           // Fix: The structure might be different - check the actual response
           const updatedMess = action.payload.data?.mess || action.payload.data;
 
-          console.log("Updated mess received:", updatedMess);
+          // console.log("Updated mess received:", updatedMess);
 
           if (updatedMess && updatedMess._id) {
             const index = state.ownerMesses.findIndex(

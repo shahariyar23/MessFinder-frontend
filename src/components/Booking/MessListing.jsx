@@ -73,6 +73,8 @@ const getStatusDisplayText = (status) => {
 
 // Status Update Dialog Component
 const StatusUpdateDialog = ({ mess, onStatusUpdate, isUpdating }) => {
+  
+  // console.log("mess",mess, "isuploading",isUpdating,)
   const [selectedStatus, setSelectedStatus] = useState(mess.status);
   
   const statusOptions = [
@@ -227,15 +229,21 @@ export const Messlisting = () => {
   };
 
   // New function to handle status update
-  const handleStatusUpdate = async (mess) => {
+  const handleStatusUpdate = async (mess_id, selectedStatus) => {
     
-    try {
-      await dispatch(updateMessStatus({ mess_id: mess, status: selectedStatus })).unwrap();
-      // Refresh the mess list to show updated status
-      dispatch(getMessesByOwnerId(user?.id));
-    } catch (error) {
-      toast.error('Failed to update status:', error);
-    }
+      await dispatch(updateMessStatus({ mess_id, status: selectedStatus })).unwrap().then(res=>{
+        console.log(res.success)
+if(res?.success){
+toast.success(res.message)
+  dispatch(getMessesByOwnerId(user?.id));
+}else{
+  toast.error("Failed to update status")
+}
+      });
+      
+    // } catch (error) {
+    //   toast.error('Failed to update status:', error);
+    // }
   };
 
   return (
