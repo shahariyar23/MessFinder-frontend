@@ -41,21 +41,39 @@ import {
   ClipboardClock,
   ChevronsLeftRightEllipsis,
   X,
+  Save,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
-import { deleteMess, getMessesByOwnerId, updateMessStatus } from "@/store/mess/ownerMessSlice";
+import {
+  deleteMess,
+  getMessesByOwnerId,
+  updateMessStatus,
+  updateMess,
+} from "@/store/mess/ownerMessSlice";
 import { Spinner } from "../ui/spinner";
 import { toast } from "react-toastify";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const getStatusStyle = (status) => {
   const styles = {
-    free: 'bg-green-100 text-green-800 border-green-200 hover:bg-green-200',
-    booked: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200',
-    pending: 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200',
-    'in progress': 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200',
-    in_progress: 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200',
+    free: "bg-green-100 text-green-800 border-green-200 hover:bg-green-200",
+    booked: "bg-red-100 text-red-800 border-red-200 hover:bg-red-200",
+    pending:
+      "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200",
+    "in progress":
+      "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200",
+    in_progress: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200",
   };
   return styles[status] || styles.free;
 };
@@ -65,23 +83,41 @@ const getStatusDisplayText = (status) => {
     free: "Available",
     booked: "Booked",
     pending: "Pending",
-    'in progress': "In Progress",
-    in_progress: "In Progress" 
+    "in progress": "In Progress",
+    in_progress: "In Progress",
   };
   return statusMap[status] || "Available";
 };
 
 // Status Update Dialog Component
 const StatusUpdateDialog = ({ mess, onStatusUpdate, isUpdating }) => {
-  
-  // console.log("mess",mess, "isuploading",isUpdating,)
   const [selectedStatus, setSelectedStatus] = useState(mess.status);
-  
+
   const statusOptions = [
-    { value: "free", label: "Available", description: "Mess is available for new bookings", color: "text-green-600" },
-    { value: "booked", label: "Booked", description: "Mess has been booked by a tenant", color: "text-red-600" },
-    { value: "pending", label: "Pending", description: "Waiting for booking confirmation", color: "text-yellow-600" },
-    { value: "in progress", label: "In Progress", description: "Booking process is ongoing", color: "text-blue-600" },
+    {
+      value: "free",
+      label: "Available",
+      description: "Mess is available for new bookings",
+      color: "text-green-600",
+    },
+    {
+      value: "booked",
+      label: "Booked",
+      description: "Mess has been booked by a tenant",
+      color: "text-red-600",
+    },
+    {
+      value: "pending",
+      label: "Pending",
+      description: "Waiting for booking confirmation",
+      color: "text-yellow-600",
+    },
+    {
+      value: "in progress",
+      label: "In Progress",
+      description: "Booking process is ongoing",
+      color: "text-blue-600",
+    },
   ];
 
   const handleSubmit = () => {
@@ -93,7 +129,7 @@ const StatusUpdateDialog = ({ mess, onStatusUpdate, isUpdating }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <DropdownMenuItem 
+        <DropdownMenuItem
           className="gap-2 text-blue-600 cursor-pointer"
           onSelect={(e) => e.preventDefault()}
         >
@@ -101,7 +137,7 @@ const StatusUpdateDialog = ({ mess, onStatusUpdate, isUpdating }) => {
           Update Status
         </DropdownMenuItem>
       </DialogTrigger>
-      
+
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Update Mess Status</DialogTitle>
@@ -109,27 +145,27 @@ const StatusUpdateDialog = ({ mess, onStatusUpdate, isUpdating }) => {
             <X className="w-4 h-4" />
           </DialogClose>
         </DialogHeader>
-        
+
         <DialogBody>
           <div className="space-y-4">
             <div>
               <h4 className="font-medium text-gray-900 mb-2">{mess.title}</h4>
               <p className="text-sm text-gray-600">{mess.address}</p>
             </div>
-            
+
             <div className="space-y-3">
               <label className="text-sm font-medium text-gray-700">
                 Select New Status
               </label>
-              
+
               <div className="space-y-2">
                 {statusOptions.map((option) => (
                   <div
                     key={option.value}
                     className={`flex items-start p-3 border rounded-lg cursor-pointer transition-colors ${
                       selectedStatus === option.value
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:bg-gray-50'
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:bg-gray-50"
                     }`}
                     onClick={() => setSelectedStatus(option.value)}
                   >
@@ -153,34 +189,43 @@ const StatusUpdateDialog = ({ mess, onStatusUpdate, isUpdating }) => {
                 ))}
               </div>
             </div>
-            
+
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-sm text-gray-600">
                 <strong>Current Status:</strong>{" "}
-                <span className={getStatusStyle(mess.status) + " px-2 py-1 rounded text-xs"}>
+                <span
+                  className={
+                    getStatusStyle(mess.status) + " px-2 py-1 rounded text-xs"
+                  }
+                >
                   {getStatusDisplayText(mess.status)}
                 </span>
               </p>
               <p className="text-sm text-gray-600 mt-1">
                 <strong>New Status:</strong>{" "}
-                <span className={
-                  statusOptions.find(opt => opt.value === selectedStatus)?.color + 
-                  " font-medium"
-                }>
-                  {statusOptions.find(opt => opt.value === selectedStatus)?.label}
+                <span
+                  className={
+                    statusOptions.find((opt) => opt.value === selectedStatus)
+                      ?.color + " font-medium"
+                  }
+                >
+                  {
+                    statusOptions.find((opt) => opt.value === selectedStatus)
+                      ?.label
+                  }
                 </span>
               </p>
             </div>
           </div>
         </DialogBody>
-        
+
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline" disabled={isUpdating}>
               Cancel
             </Button>
           </DialogClose>
-          <Button 
+          <Button
             onClick={handleSubmit}
             disabled={selectedStatus === mess.status || isUpdating}
             className="gap-2"
@@ -191,8 +236,301 @@ const StatusUpdateDialog = ({ mess, onStatusUpdate, isUpdating }) => {
                 Updating...
               </>
             ) : (
+              <>Update Status</>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Edit Mess Dialog Component
+const EditMessDialog = ({ mess, onEditSubmit, isUpdating }) => {
+  const [formData, setFormData] = useState({
+    title: mess.title || "",
+    description: mess.description || "",
+    address: mess.address || "",
+    payPerMonth: mess.payPerMonth || "",
+    roomType: mess.roomType || "single",
+    genderPreference: mess.genderPreference || "male",
+    facilities: mess.facilities || [],
+  });
+
+  const [newFacility, setNewFacility] = useState("");
+
+  const roomTypes = [
+    { value: "single", label: "Single Room" },
+    { value: "double", label: "Double Room" },
+    { value: "shared", label: "Shared Room" },
+  ];
+
+  const genderOptions = [
+    { value: "male", label: "Male Only" },
+    { value: "female", label: "Female Only" },
+  ];
+
+  const commonFacilities = [
+    "Wi-Fi",
+    "Meals",
+    "Laundry",
+    "Lifts",
+    "Water Filter",
+    "Freezer",
+  ];
+
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // const handleAddFacility = () => {
+  //   if (newFacility.trim() && !formData.facilities.includes(newFacility.trim())) {
+  //     setFormData(prev => ({
+  //       ...prev,
+  //       facilities: [...prev.facilities, newFacility.trim()]
+  //     }));
+  //     setNewFacility("");
+  //   }
+  // };
+
+  const handleRemoveFacility = (facilityToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      facilities: prev.facilities.filter((f) => f !== facilityToRemove),
+    }));
+  };
+
+  const handleCommonFacilityClick = (facility) => {
+    if (!formData.facilities.includes(facility)) {
+      setFormData((prev) => ({
+        ...prev,
+        facilities: [...prev.facilities, facility],
+      }));
+    }
+  };
+
+  const handleSubmit = () => {
+    // Basic validation
+    if (
+      !formData.title.trim() ||
+      !formData.description.trim() ||
+      !formData.address.trim()
+    ) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!formData.payPerMonth || formData.payPerMonth <= 0) {
+      toast.error("Please enter a valid monthly rent");
+      return;
+    }
+    // dispatch(updateMess())
+    onEditSubmit(mess._id, formData);
+  };
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <DropdownMenuItem
+          className="gap-2 cursor-pointer"
+          onSelect={(e) => e.preventDefault()}
+        >
+          <Edit className="w-4 h-4" />
+          Edit Details
+        </DropdownMenuItem>
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit Mess Details</DialogTitle>
+          <DialogClose>
+            <X className="w-4 h-4" />
+          </DialogClose>
+        </DialogHeader>
+
+        <DialogBody>
+          <div className="space-y-6">
+            {/* Basic Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Basic Information</h3>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Mess Title *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => handleInputChange("title", e.target.value)}
+                    placeholder="Enter mess title"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description *</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
+                    placeholder="Describe your mess, facilities, rules, etc."
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address *</Label>
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
+                    placeholder="Full address of the mess"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Pricing & Details */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Pricing & Details</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="payPerMonth">Monthly Rent (BDT) *</Label>
+                  <Input
+                    id="payPerMonth"
+                    type="number"
+                    value={formData.payPerMonth}
+                    onChange={(e) =>
+                      handleInputChange("payPerMonth", e.target.value)
+                    }
+                    placeholder="Enter monthly rent"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="roomType">Room Type *</Label>
+                  <Select
+                    value={formData.roomType}
+                    onValueChange={(value) =>
+                      handleInputChange("roomType", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select room type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roomTypes.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="genderPreference">Gender Preference *</Label>
+                  <Select
+                    value={formData.genderPreference}
+                    onValueChange={(value) =>
+                      handleInputChange("genderPreference", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender preference" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {genderOptions.map((gender) => (
+                        <SelectItem key={gender.value} value={gender.value}>
+                          {gender.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Facilities */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Facilities & Amenities</h3>
+
+              <div className="space-y-3">
+                <Label>Current Facilities</Label>
+                <div className="flex flex-wrap gap-2">
+                  {formData.facilities.map((facility, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      {facility}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFacility(facility)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                  {formData.facilities.length === 0 && (
+                    <p className="text-sm text-gray-500">
+                      No facilities added yet
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Common Facilities</Label>
+                <div className="flex flex-wrap gap-2">
+                  {commonFacilities.map((facility) => (
+                    <Badge
+                      key={facility}
+                      variant={
+                        formData.facilities.includes(facility)
+                          ? "default"
+                          : "outline"
+                      }
+                      className="cursor-pointer"
+                      onClick={() => handleCommonFacilityClick(facility)}
+                    >
+                      {facility}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogBody>
+
+        <DialogFooter className="flex gap-2">
+          <DialogClose asChild>
+            <Button variant="outline" disabled={isUpdating}>
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+            onClick={handleSubmit}
+            disabled={isUpdating}
+            className="gap-2"
+          >
+            {isUpdating ? (
               <>
-                Update Status
+                <Spinner className="w-4 h-4" />
+                Updating...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Update Mess
               </>
             )}
           </Button>
@@ -205,16 +543,30 @@ const StatusUpdateDialog = ({ mess, onStatusUpdate, isUpdating }) => {
 export const Messlisting = () => {
   const { user } = useSelector((state) => state.auth);
   const { ownerMesses, isUpdating } = useSelector((state) => state.owner);
+  const { isLoading } = useSelector((state) => state.mess);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
   useEffect(() => {
     dispatch(getMessesByOwnerId(user?.id));
   }, [dispatch, user?.id]);
 
-  const handleEdit = (mess) => {
-    // localStorage.setItem('editMessData', JSON.stringify(mess));
-    // navigate('/mess/add', { state: { editMode: true, messData: mess } });
+  const handleEdit = async (messId, formData) => {
+    try {
+      const result = await dispatch(
+        updateMess({ messId, updateData: formData })
+      ).unwrap();
+
+      if (result?.success) {
+        toast.success(result.message || "Mess updated successfully");
+        dispatch(getMessesByOwnerId(user?.id));
+      } else {
+        toast.error(result?.message || "Failed to update mess");
+      }
+    } catch (error) {
+      toast.error("Failed to update mess details");
+      console.error("Edit mess error:", error);
+    }
   };
 
   const handleDelete = async (messId) => {
@@ -228,22 +580,17 @@ export const Messlisting = () => {
     navigate(`/mess/info/${messId}`);
   };
 
-  // New function to handle status update
   const handleStatusUpdate = async (mess_id, selectedStatus) => {
-    
-      await dispatch(updateMessStatus({ mess_id, status: selectedStatus })).unwrap().then(res=>{
-        console.log(res.success)
-if(res?.success){
-toast.success(res.message)
-  dispatch(getMessesByOwnerId(user?.id));
-}else{
-  toast.error("Failed to update status")
-}
+    await dispatch(updateMessStatus({ mess_id, status: selectedStatus }))
+      .unwrap()
+      .then((res) => {
+        if (res?.success) {
+          toast.success(res.message);
+          dispatch(getMessesByOwnerId(user?.id));
+        } else {
+          toast.error("Failed to update status");
+        }
       });
-      
-    // } catch (error) {
-    //   toast.error('Failed to update status:', error);
-    // }
   };
 
   return (
@@ -267,12 +614,7 @@ toast.success(res.message)
           </Link>
         </div>
 
-        {/* Stats Overview - Same as before */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-          {/* ... existing stats cards ... */}
-        </div>
-
-        {/* Tabs for Filtering - Same as before */}
+        {/* Tabs for Filtering */}
         <Tabs defaultValue="all" className="mb-8">
           <TabsList className="grid w-full md:w-auto grid-cols-5">
             <TabsTrigger value="all">All Listings</TabsTrigger>
@@ -282,7 +624,7 @@ toast.success(res.message)
             <TabsTrigger value="booked">Booked</TabsTrigger>
           </TabsList>
 
-          {/* Tab contents - Same as before */}
+          {/* Tab contents */}
           <TabsContent value="all" className="mt-6">
             <MessGrid
               messes={ownerMesses}
@@ -307,8 +649,9 @@ toast.success(res.message)
 
           <TabsContent value="in_progress" className="mt-6">
             <MessGrid
-              messes={ownerMesses.filter((mess) => 
-                mess.status === "in progress" || mess.status === "in_progress"
+              messes={ownerMesses.filter(
+                (mess) =>
+                  mess.status === "in progress" || mess.status === "in_progress"
               )}
               onEdit={handleEdit}
               onDelete={handleDelete}
@@ -341,7 +684,7 @@ toast.success(res.message)
           </TabsContent>
         </Tabs>
 
-        {/* Empty State - Same as before */}
+        {/* Empty State */}
         {ownerMesses.length === 0 && (
           <Card className="text-center py-12">
             <CardContent>
@@ -369,8 +712,15 @@ toast.success(res.message)
   );
 };
 
-// Updated MessGrid Component
-const MessGrid = ({ messes, onEdit, onDelete, onViewDetails, onStatusUpdate, isUpdating }) => {
+// MessGrid Component
+const MessGrid = ({
+  messes,
+  onEdit,
+  onDelete,
+  onViewDetails,
+  onStatusUpdate,
+  isUpdating,
+}) => {
   if (messes.length === 0) {
     return (
       <div className="text-center py-12">
@@ -396,10 +746,93 @@ const MessGrid = ({ messes, onEdit, onDelete, onViewDetails, onStatusUpdate, isU
   );
 };
 
-// Updated MessCard Component
-const MessCard = ({ mess, onEdit, onDelete, onViewDetails, onStatusUpdate, isUpdating }) => {
-  const { isDeleting } = useSelector(state => state.owner);
+// MessCard Component
+// MessCard Component
+const MessCard = ({
+  mess,
+  onEdit,
+  onDelete,
+  onViewDetails,
+  onStatusUpdate,
+  isUpdating,
+  isLoading,
+}) => {
+  const { isDeleting } = useSelector((state) => state.owner);
 
+  // Skeleton Loading Component
+  if (isLoading) {
+    return (
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 animate-pulse">
+        {/* Image Skeleton */}
+        <div className="relative">
+          <div className="w-full h-48 bg-gray-300"></div>
+          <div className="absolute top-3 left-3">
+            <div className="h-6 w-20 bg-gray-400 rounded-full"></div>
+          </div>
+          <div className="absolute top-3 right-3">
+            <div className="h-8 w-8 bg-gray-400 rounded-full"></div>
+          </div>
+        </div>
+
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start">
+            <div className="h-6 bg-gray-300 rounded w-3/4"></div>
+            <div className="h-5 bg-gray-300 rounded w-10"></div>
+          </div>
+          <div className="flex items-center gap-1 mt-2">
+            <div className="h-4 bg-gray-300 rounded w-4"></div>
+            <div className="h-4 bg-gray-300 rounded w-32"></div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pb-3">
+          <div className="space-y-2 mb-3">
+            <div className="h-4 bg-gray-300 rounded"></div>
+            <div className="h-4 bg-gray-300 rounded w-5/6"></div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <div className="h-4 bg-gray-300 rounded w-20"></div>
+              <div className="h-4 bg-gray-300 rounded w-16"></div>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="h-4 bg-gray-300 rounded w-20"></div>
+              <div className="h-6 bg-gray-300 rounded w-16"></div>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="h-4 bg-gray-300 rounded w-20"></div>
+              <div className="h-6 bg-gray-300 rounded w-16"></div>
+            </div>
+          </div>
+
+          {/* Facilities Skeleton */}
+          <div className="mt-3">
+            <div className="flex flex-wrap gap-1">
+              <div className="h-6 bg-gray-300 rounded w-16"></div>
+              <div className="h-6 bg-gray-300 rounded w-20"></div>
+              <div className="h-6 bg-gray-300 rounded w-14"></div>
+            </div>
+          </div>
+        </CardContent>
+
+        <CardFooter className="border-t pt-3 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1">
+              <div className="h-4 bg-gray-300 rounded w-4"></div>
+              <div className="h-4 bg-gray-300 rounded w-12"></div>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="h-4 bg-gray-300 rounded w-4"></div>
+              <div className="h-4 bg-gray-300 rounded w-16"></div>
+            </div>
+          </div>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  // Actual Mess Card Component
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
       {/* Image Section */}
@@ -415,15 +848,12 @@ const MessCard = ({ mess, onEdit, onDelete, onViewDetails, onStatusUpdate, isUpd
         />
         <div className="absolute top-3 left-3">
           <Badge
-            className={`font-medium transition-colors ${getStatusStyle(mess.status)}`}
+            className={`font-medium transition-colors ${getStatusStyle(
+              mess.status
+            )}`}
           >
             {getStatusDisplayText(mess.status)}
           </Badge>
-          {isDeleting && (
-            <Badge className={`font-medium bg-red-600 text-white transition-colors`}>
-              <Spinner /> Deleting
-            </Badge>
-          )}
         </div>
         <div className="absolute top-3 right-3">
           <DropdownMenu>
@@ -446,24 +876,27 @@ const MessCard = ({ mess, onEdit, onDelete, onViewDetails, onStatusUpdate, isUpd
                 <Eye className="w-4 h-4" />
                 View Details
               </DropdownMenuItem>
+
+              {/* Edit Dialog Trigger */}
               {mess.status !== "booked" && (
-                <DropdownMenuItem
-                  className="gap-2 cursor-pointer"
-                  onClick={() => onEdit(mess)}
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit details
-                </DropdownMenuItem>
+                <EditMessDialog
+                  mess={mess}
+                  onEditSubmit={onEdit}
+                  isUpdating={isUpdating}
+                />
               )}
+
               <DropdownMenuSeparator />
-              
+
               {/* Status Update Dialog Trigger */}
-              <StatusUpdateDialog 
-                mess={mess} 
-                onStatusUpdate={onStatusUpdate}
-                isUpdating={isUpdating}
-              />
-              
+              {mess?.status && mess.status !== "booked" ? (
+                <StatusUpdateDialog
+                  mess={mess}
+                  onStatusUpdate={onStatusUpdate}
+                  isUpdating={isUpdating}
+                />
+              ) : null}
+
               <DropdownMenuSeparator />
               {mess.status === "free" && (
                 <DropdownMenuItem
@@ -479,7 +912,6 @@ const MessCard = ({ mess, onEdit, onDelete, onViewDetails, onStatusUpdate, isUpd
         </div>
       </div>
 
-      {/* Rest of the card content remains the same */}
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg leading-tight">{mess.title}</CardTitle>
@@ -504,7 +936,7 @@ const MessCard = ({ mess, onEdit, onDelete, onViewDetails, onStatusUpdate, isUpd
         <div className="space-y-2">
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-500">Monthly Rent</span>
-            <span className="font-semibold text-green-600 flex items-center gap-1">
+            <span className="font-semibold text-green-600">
               ৳ {mess.payPerMonth}
             </span>
           </div>
@@ -552,10 +984,6 @@ const MessCard = ({ mess, onEdit, onDelete, onViewDetails, onStatusUpdate, isUpd
             {mess.ratingInfo?.totalReviews || 0} reviews
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => onEdit(mess)}>
-          <Edit className="w-3 h-3 mr-1" />
-          Edit
-        </Button>
       </CardFooter>
     </Card>
   );

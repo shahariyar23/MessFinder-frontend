@@ -20,7 +20,8 @@ import {
     Send,
     Banknote,
     WalletCards,
-    Command
+    Command,
+    UserStar
 
 } from "lucide-react";
 
@@ -348,6 +349,12 @@ export const sidebarLinks = [
         label: "Saved",
         icon: Bookmark,
         iconFilled: Bookmark, // No filled variant, so reuse
+    },
+    {
+        value: "review",
+        label: "Review",
+        icon: UserStar,
+        iconFilled: UserStar, // No filled variant, so reuse
     },
     {
         value: "profile",

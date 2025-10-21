@@ -6,10 +6,12 @@ import { useEffect, useState } from "react";
 import { checkAuth } from "@/store/auth/authSlice";
 import { Spinner } from "@/components/ui/spinner";
 import { Bounce, ToastContainer } from "react-toastify";
+import PageLayout from "../PageLayout/PageLayout";
+import { useRouteMetadata } from "@/hook/useRouteMetadata";
 
 const Root = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const {user} = useSelector(state => state.auth)
+  useRouteMetadata();
   const dispatch = useDispatch();
   useEffect(() => {
     setIsLoading(true);
@@ -22,7 +24,7 @@ const Root = () => {
     });
   }, []);
   return (
-    <div>
+    <PageLayout>
       <Navbar />
       {isLoading ? (
         <div className="min-h-screen flex items-center justify-center">
@@ -45,7 +47,7 @@ const Root = () => {
                 theme="light"
                 transition={Bounce}
             />
-    </div>
+    </PageLayout>
   );
 };
 export default Root;

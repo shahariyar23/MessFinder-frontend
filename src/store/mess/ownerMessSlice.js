@@ -5,6 +5,7 @@ import axios from "axios";
 export const getMessesByOwnerId = createAsyncThunk(
   "ownerMess/getMessesByOwnerId",
   async (ownerId, { rejectWithValue }) => {
+    console.log(ownerId,"owner slice")
     try {
       const response = await axios.get(
         `http://localhost:8000/api/v1/owner/get-all-messes/${ownerId}`,
@@ -28,11 +29,11 @@ export const getMessesByOwnerId = createAsyncThunk(
 export const updateMess = createAsyncThunk(
   "ownerMess/updateMess",
   async ({ messId, updateData }, { rejectWithValue }) => {
-    // console.log(messId, updateData);
+    console.log(messId, updateData);
     try {
       const response = await axios.put(
         `http://localhost:8000/api/v1/mess/update-mess/${messId}`,
-        updateData,
+        {updateData},
         {
           withCredentials: true,
         }

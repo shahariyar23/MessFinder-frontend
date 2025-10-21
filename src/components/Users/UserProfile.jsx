@@ -6,6 +6,7 @@ import UserDashboard from "@/pages/Dashboard/UserDashoard";
 import BookingListing from "@/components/Booking/BookingListing";
 import Payment from "@/components/Booking/Payment";
 import { sidebarLinks } from "@/config/config";
+import Review from "../Review/Review"
 import { HelpCircle } from "lucide-react";
 import { useParams } from "react-router";
 import Messlisting from "../Booking/MessListing";
@@ -27,7 +28,7 @@ const UserProfile = () => {
                 defaultValue="booking"
                 className="min-h-screen w-full"
             >
-                <div className="flex flex-col lg:flex-row min-h-screen  w-full">
+                <div className="flex flex-col lg:flex-row min-h-screen pt-7 w-full">
                     {/* Sidebar */}
                     <aside className="flex flex-col pt-24 lg:w-80 w-full border-r lg:min-h-[700px] bg-slate-50 p-4 gap-y-9 lg:gap-0 lg:justify-between">
                         <div>
@@ -82,6 +83,9 @@ const UserProfile = () => {
                         </TabsContent>
                         <TabsContent value="saved">
                             <SaveMess />
+                        </TabsContent>
+                        <TabsContent value="review">
+                            <Review />
                         </TabsContent>
                         <TabsContent value="profile">
                             <UserDashboard />

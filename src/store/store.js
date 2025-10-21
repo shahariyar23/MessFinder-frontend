@@ -5,6 +5,7 @@ import ownerReducer from "./mess/ownerMessSlice.js"
 import requestReducer from "./mess/requestMessSlice.js"
 import saveMessReducer from "./mess/saveMessSlice.js"
 import bookingMessReducer from "./mess/bookingSlice.js"
+import reviewReducer from "./mess/reviewSlice.js"
 
 
 const store = configureStore({
@@ -19,7 +20,9 @@ const store = configureStore({
 
         save: saveMessReducer,
 
-        booking: bookingMessReducer
+        booking: bookingMessReducer,
+
+        review: reviewReducer
     }
 })
 

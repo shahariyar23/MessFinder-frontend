@@ -23,6 +23,7 @@ const SingleMess = () => {
   const { messId } = useParams();
   const { currentMess, isLoading } = useSelector((state) => state.mess);
   const { loading, checkedMesses } = useSelector((state) => state.save);
+  const {requestLoading} = useSelector (state=> state.request)
   console.log(currentMess);
   const nevigate = useNavigate();
   const dispatch = useDispatch();
@@ -105,11 +106,19 @@ const SingleMess = () => {
               <div className="flex items-center gap-1">
                 <span className="text-yellow-500">⭐</span>
                 <span className="text-sky-500 font-medium">
-                  {currentMess?.ratingInfo?.averageRating?.toFixed(1) || "0.0"}
+                  {currentMess?.ratingInfo?.ownerWideStats?.averageRating.toFixed(
+                    1
+                  ) || "0.0"}
                 </span>
-                <span className="text-gray-500 text-sm">
-                  ({currentMess?.ratingInfo?.totalReviews || 0} reviews)
-                </span>
+                {currentMess?.ratingInfo?.ownerWideStats?.averageRating ? (
+                  <div className="text-sm text-gray-500">
+                    Based on{" "}
+                    {currentMess?.ratingInfo?.ownerWideStats?.totalReviews || 0}{" "}
+                    reviews
+                    {currentMess?.ratingInfo?.ownerWideStats?.totalMesses > 1 &&
+                      ` across ${currentMess?.ratingInfo?.ownerWideStats?.totalMesses} messes`}
+                  </div>
+                ) : null}
               </div>
               <span>•</span>
               <span className="capitalize">{currentMess?.roomType} Room</span>
@@ -322,7 +331,7 @@ const SingleMess = () => {
                   variant="login"
                   onClick={handleRequest}
                 >
-                  Request to View Mess
+                  { requestLoading ? <Spinner/> :"Request to View Mess"}
                 </Button>
               </div>
             )}
@@ -407,15 +416,16 @@ const SingleMess = () => {
             {/* Right Column - Review Information */}
             <div>
               <h4 className="text-gray-700 font-medium mb-4">
-                Customer Reviews
+                Customer Reviews base on owner
               </h4>
 
               {/* Overall Rating */}
               <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-2">
                   <div className="text-2xl font-bold text-sky-600">
-                    {currentMess?.ratingInfo?.averageRating?.toFixed(1) ||
-                      "0.0"}
+                    {currentMess?.ratingInfo?.ownerWideStats?.averageRating?.toFixed(
+                      1
+                    ) || "0.0"}
                   </div>
                   <div className="flex flex-col">
                     <div className="flex items-center gap-1">
@@ -425,7 +435,8 @@ const SingleMess = () => {
                           className={`text-lg ${
                             star <=
                             Math.round(
-                              currentMess?.ratingInfo?.averageRating || 0
+                              currentMess?.ratingInfo?.ownerWideStats
+                                ?.averageRating || 0
                             )
                               ? "text-yellow-500"
                               : "text-gray-300"
@@ -436,24 +447,56 @@ const SingleMess = () => {
                       ))}
                     </div>
                     <div className="text-sm text-gray-500">
-                      Based on {currentMess?.ratingInfo?.totalReviews || 0}{" "}
+                      Based on{" "}
+                      {currentMess?.ratingInfo?.ownerWideStats?.totalReviews ||
+                        0}{" "}
                       reviews
+                      {currentMess?.ratingInfo?.ownerWideStats?.totalMesses >
+                        1 &&
+                        ` across ${currentMess?.ratingInfo?.ownerWideStats?.totalMesses} messes`}
                     </div>
                   </div>
                 </div>
               </div>
 
+              {/* Individual Mess Stats */}
+              {currentMess?.ratingInfo?.individualMessStats?.totalReviews >
+                0 && (
+                <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-blue-700 font-medium">
+                      This specific mess:
+                      {currentMess?.ratingInfo?.individualMessStats?.averageRating?.toFixed(
+                        1
+                      )}{" "}
+                      ★ (
+                      {
+                        currentMess?.ratingInfo?.individualMessStats
+                          ?.totalReviews
+                      }{" "}
+                      reviews)
+                    </span>
+                    <span className="text-blue-600 text-xs">
+                      {currentMess?.ratingInfo?.individualMessStats?.message}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Rating Distribution */}
-              {currentMess?.ratingInfo?.ratingDistribution &&
-              currentMess.ratingInfo.totalReviews > 0 ? (
+              {currentMess?.ratingInfo?.ownerWideStats?.ratingDistribution &&
+              currentMess?.ratingInfo?.ownerWideStats?.totalReviews > 0 ? (
                 <div className="space-y-2 mb-4">
                   <h5 className="text-sm font-medium text-gray-700 mb-2">
                     Rating Breakdown
                   </h5>
                   {[5, 4, 3, 2, 1].map((rating) => {
                     const count =
-                      currentMess.ratingInfo.ratingDistribution[rating] || 0;
-                    const total = currentMess.ratingInfo.totalReviews || 1;
+                      currentMess.ratingInfo.ownerWideStats.ratingDistribution[
+                        rating
+                      ] || 0;
+                    const total =
+                      currentMess.ratingInfo.ownerWideStats.totalReviews || 1;
                     const percentage = (count / total) * 100;
 
                     return (
@@ -601,7 +644,7 @@ const SingleMess = () => {
 
           {/* Action Buttons for Reviews */}
           <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
-            <Button variant="outline" className="flex-1" size="sm">
+            {/* <Button variant="outline" className="flex-1" size="sm">
               <svg
                 className="w-4 h-4 mr-2"
                 fill="none"
@@ -616,7 +659,7 @@ const SingleMess = () => {
                 />
               </svg>
               Write a Review
-            </Button>
+            </Button> */}
             {currentMess?.ratingInfo?.totalReviews > 0 && (
               <Button variant="outline" className="flex-1" size="sm">
                 <svg

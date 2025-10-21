@@ -129,7 +129,7 @@ const requestMessSlice = createSlice({
   name: "messView",
   initialState: {
     // Send Request States
-    loading: false,
+    requestLoading: false,
     success: false,
     error: null,
     
@@ -174,7 +174,7 @@ const requestMessSlice = createSlice({
   },
   reducers: {
     clearMessViewState: (state) => {
-      state.loading = false;
+      state.requestLoading = false;
       state.success = false;
       state.error = null;
       state.requestsError = null;
@@ -236,17 +236,17 @@ const requestMessSlice = createSlice({
     builder
       // Send Request
       .addCase(sendMessViewRequest.pending, (state) => {
-        state.loading = true;
+        state.requestLoading = true;
         state.success = false;
         state.error = null;
       })
       .addCase(sendMessViewRequest.fulfilled, (state, action) => {
-        state.loading = false;
+        state.requestLoading = false;
         state.success = true;
         state.error = null;
       })
       .addCase(sendMessViewRequest.rejected, (state, action) => {
-        state.loading = false;
+        state.requestLoading = false;
         state.success = false;
         state.error = action.payload;
       })

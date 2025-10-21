@@ -367,7 +367,7 @@ const RequestView = () => {
       <div className="container mx-auto p-6 pt-20">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <Spinner className="h-12 w-12 border-b-2 border-primary mx-auto" />
+            <Spinner className="h-12 w-12 mx-auto" />
           </div>
         </div>
       </div>
