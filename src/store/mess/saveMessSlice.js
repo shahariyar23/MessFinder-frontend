@@ -7,7 +7,7 @@ export const saveMess = createAsyncThunk(
   async (messId, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        `http://localhost:8000/api/v1/mess/save/add/${messId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/mess/save/add/${messId}`,
         {},
         { withCredentials: true }
       );
@@ -25,7 +25,7 @@ export const unsaveMess = createAsyncThunk(
   async (messId, { rejectWithValue }) => {
     try {
       const response = await axios.delete(
-        `http://localhost:8000/api/v1/mess/save/delete/${messId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/mess/save/delete/${messId}`,
         { withCredentials: true }
       );
       return response.data;
@@ -43,7 +43,7 @@ export const getSavedMesses = createAsyncThunk(
     try {
       const { page = 1, limit = 10 } = filters;
       const response = await axios.get(
-        `http://localhost:8000/api/v1/mess/save/get-all?page=${page}&limit=${limit}`,
+        `${import.meta.env.VITE_BACKEND_URL}/mess/save/get-all?page=${page}&limit=${limit}`,
         { withCredentials: true }
       );
       return response.data;
@@ -60,7 +60,7 @@ export const checkMessSaved = createAsyncThunk(
   async (messId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/v1/mess/save/check/${messId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/mess/save/check/${messId}`,
         { withCredentials: true }
       );
       return response.data;

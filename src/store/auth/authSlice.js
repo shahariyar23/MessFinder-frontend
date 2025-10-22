@@ -15,7 +15,7 @@ export const registerUser = createAsyncThunk(
   async ({ userName, email, password, role, phonenumber }) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/user/register",
+        `${import.meta.env.VITE_BACKEND_URL}/user/register`,
         {
           email,
           password,
@@ -39,7 +39,7 @@ export const loginUser = createAsyncThunk(
   async ({ email, password }) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/user/login",
+        `${import.meta.env.VITE_BACKEND_URL}/user/login`,
         {
           email,
           password,
@@ -61,7 +61,7 @@ export const loginUser = createAsyncThunk(
 export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
   try {
     const response = await axios.post(
-      "http://localhost:8000/api/v1/user/logout",
+      `${import.meta.env.VITE_BACKEND_URL}/user/logout`,
       {},
       {
         withCredentials: true,
@@ -82,7 +82,7 @@ export const generateResetCode = createAsyncThunk(
     console.group(email)
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/user/forgot-password",
+        `${import.meta.env.VITE_BACKEND_URL}/user/forgot-password`,
         { email }
       );
       return response.data;
@@ -101,7 +101,7 @@ export const verifyResetCode = createAsyncThunk(
     console.log(email, code)
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/user/verify-code",
+        `${import.meta.env.VITE_BACKEND_URL}/user/verify-code`,
         { email, code }
       );
       return response.data;
@@ -119,7 +119,7 @@ export const resetPassword = createAsyncThunk(
   async ({ email, code, newPassword }) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/user/reset-password",
+        `${import.meta.env.VITE_BACKEND_URL}/user/reset-password`,
         { email, code, newPassword }
       );
       return response.data;
@@ -135,7 +135,7 @@ export const getStudentById = createAsyncThunk(
   async (studentId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/v1/user/get-student-id/${studentId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/user/get-student-id/${studentId}`,
         {
           withCredentials: true,
         }
@@ -150,19 +150,30 @@ export const getStudentById = createAsyncThunk(
 );
 
 // Check Auth Status
-export const checkAuth = createAsyncThunk("auth/checkAuth", async () => {
+export const checkAuth = createAsyncThunk("auth/checkAuth", async (_, { rejectWithValue }) => {
   try {
     const response = await axios.get(
-      "http://localhost:8000/api/v1/user/check-auth",
+      `${import.meta.env.VITE_BACKEND_URL}/user/check-auth`, // Fixed path
       {
         withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        }
       }
     );
+    
+    console.log('Check Auth Response:', response.data);
     return response.data;
+    
   } catch (error) {
-    if (!error.response?.data?.success) {
-      return error.response?.data || "Something went wrong";
-    }
+    console.error('Check Auth Error:', error.response?.data || error.message);
+    
+    // Return consistent error format
+    return rejectWithValue({
+      success: false,
+      authenticated: false,
+      message: error.response?.data?.message || 'Authentication check failed'
+    });
   }
 });
 

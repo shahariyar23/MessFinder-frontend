@@ -61,7 +61,7 @@ const BookingListing = ({ bookings, isPastBooking }) => {
 
     try {
       // FIRST API CALL - Initiate SSL Commerz Payment
-      const response = await fetch('http://localhost:8000/api/v1/payment/ssl-initiate', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/payment/ssl-initiate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

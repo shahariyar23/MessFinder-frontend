@@ -8,7 +8,7 @@ export const getMessesByOwnerId = createAsyncThunk(
     console.log(ownerId,"owner slice")
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/v1/owner/get-all-messes/${ownerId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/owner/get-all-messes/${ownerId}`,
         {
           withCredentials: true,
         }
@@ -32,7 +32,7 @@ export const updateMess = createAsyncThunk(
     console.log(messId, updateData);
     try {
       const response = await axios.put(
-        `http://localhost:8000/api/v1/mess/update-mess/${messId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/mess/update-mess/${messId}`,
         {updateData},
         {
           withCredentials: true,
@@ -57,7 +57,7 @@ export const deleteMess = createAsyncThunk(
   async (messId, { rejectWithValue }) => {
     try {
       const response = await axios.delete(
-        `http://localhost:8000/api/v1/mess/delete/${messId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/mess/delete/${messId}`,
         {
           withCredentials: true,
         }
@@ -80,7 +80,7 @@ export const getOwnerMessStats = createAsyncThunk(
   async (ownerId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/v1/mess/owner/${ownerId}/stats`,
+        `${import.meta.env.VITE_BACKEND_URL}/mess/owner/${ownerId}/stats`,
         {
           withCredentials: true,
         }
@@ -109,7 +109,7 @@ export const updateMessStatus = createAsyncThunk(
     
     try {
       const response = await axios.put(
-        `http://localhost:8000/api/v1/owner/update-mess-status`,
+        `${import.meta.env.VITE_BACKEND_URL}/owner/update-mess-status`,
         { mess_id, status },
         {
           withCredentials: true,
@@ -138,7 +138,7 @@ export const getBookingRequests = createAsyncThunk(
   async (ownerId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/v1/bookings/owner/${ownerId}/requests`,
+        `${import.meta.env.VITE_BACKEND_URL}/bookings/owner/${ownerId}/requests`,
         {
           withCredentials: true,
         }

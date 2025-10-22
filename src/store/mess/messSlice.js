@@ -7,7 +7,7 @@ export const addMess = createAsyncThunk(
   async (formData, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/mess/add",
+        `${import.meta.env.VITE_BACKEND_URL}/mess/add`,
         formData,
         {
           withCredentials: true,
@@ -36,7 +36,7 @@ export const getAllMesses = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/v1/mess/get-all-mess",
+        `${import.meta.env.VITE_BACKEND_URL}/mess/get-all-mess`,
         {
           params,
           withCredentials: true,
@@ -57,7 +57,7 @@ export const getMessById = createAsyncThunk(
   async (messId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/v1/mess/get-mess-info/${messId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/mess/get-mess-info/${messId}`,
         {
           withCredentials: true,
         }
@@ -83,7 +83,7 @@ export const advancedSearchMesses = createAsyncThunk(
       );
 
       const response = await axios.get(
-        "http://localhost:8000/api/v1/mess/get-mess-search-with-sort",
+        `${import.meta.env.VITE_BACKEND_URL}/mess/get-mess-search-with-sort`,
         {
           params: cleanParams,
           withCredentials: true,

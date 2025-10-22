@@ -7,7 +7,7 @@ export const sendMessViewRequest = createAsyncThunk(
   async ({ messId, ownerId }, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/v1/request/add/${messId}?ownerId=${ownerId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/request/add/${messId}?ownerId=${ownerId}`,
         {
           withCredentials: true,
         }
@@ -28,7 +28,7 @@ export const updateRequestStatus = createAsyncThunk(
   async ({ requestId, status }, { rejectWithValue }) => {
     try {
       const response = await axios.put(
-        `http://localhost:8000/api/v1/request/update/${requestId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/request/update/${requestId}`,
         { status },
         { withCredentials: true }
       );
@@ -48,7 +48,7 @@ export const getAllRequests = createAsyncThunk(
     try {
       const { page = 1, limit = 10} = filters;
       const response = await axios.get(
-        `http://localhost:8000/api/v1/request/get-all-request/${ownerId}?page=${page}&limit=${limit}`,
+        `${import.meta.env.VITE_BACKEND_URL}/request/get-all-request/${ownerId}?page=${page}&limit=${limit}`,
         { withCredentials: true }
       );
       return response.data;
@@ -65,7 +65,7 @@ export const getRequestDetails = createAsyncThunk(
   async (requestId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/v1/request/get-details/${requestId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/request/get-details/${requestId}`,
         { withCredentials: true }
       );
       return response.data;
@@ -89,7 +89,7 @@ export const getRequestsByMess = createAsyncThunk(
       if (status) params.append('status', status);
 
       const response = await axios.get(
-        `http://localhost:8000/api/v1/request/mess/${messId}?${params.toString()}`,
+        `${import.meta.env.VITE_BACKEND_URL}/request/mess/${messId}?${params.toString()}`,
         { withCredentials: true }
       );
       return response.data;
@@ -113,7 +113,7 @@ export const getMyRequests = createAsyncThunk(
       if (status) params.append('status', status);
 
       const response = await axios.get(
-        `http://localhost:8000/api/v1/request/get-all-request-user?${params.toString()}`,
+        `${import.meta.env.VITE_BACKEND_URL}/request/get-all-request-user?${params.toString()}`,
         { withCredentials: true }
       );
       return response.data;

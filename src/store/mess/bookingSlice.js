@@ -7,7 +7,7 @@ export const createBooking = createAsyncThunk(
   async (bookingData, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/v1/booking/create-booking",
+        `${import.meta.env.VITE_BACKEND_URL}/booking/create-booking`,
         bookingData,
         { withCredentials: true }
       );
@@ -33,7 +33,7 @@ export const getUserBookings = createAsyncThunk(
       if (type) params.append('type', type); // Add type filter
 
       const response = await axios.get(
-        `http://localhost:8000/api/v1/booking/get-user-booking?${params.toString()}`,
+        `${import.meta.env.VITE_BACKEND_URL}/booking/get-user-booking?${params.toString()}`,
         { withCredentials: true }
       );
       return response.data;
@@ -58,7 +58,7 @@ export const getOwnerBookings = createAsyncThunk(
       if (type) params.append('type', type); // Add type filter
 
       const response = await axios.get(
-        `http://localhost:8000/api/v1/booking/get-owner-booking/${ownerId}?${params.toString()}`,
+        `${import.meta.env.VITE_BACKEND_URL}/booking/get-owner-booking/${ownerId}?${params.toString()}`,
         { withCredentials: true }
       );
       return response.data;
@@ -75,7 +75,7 @@ export const getBookingById = createAsyncThunk(
   async (bookingId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/v1/booking/get-booking-info/${bookingId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/booking/get-booking-info/${bookingId}`,
         { withCredentials: true }
       );
       return response.data;
@@ -92,7 +92,7 @@ export const updateBookingStatus = createAsyncThunk(
   async ({ bookingId, bookingStatus }, { rejectWithValue }) => {
     try {
       const response = await axios.patch( // Changed to PATCH
-        `http://localhost:8000/api/v1/booking/update-booking-status/${bookingId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/booking/update-booking-status/${bookingId}`,
         { bookingStatus },
         { withCredentials: true }
       );
@@ -110,7 +110,7 @@ export const updatePaymentStatus = createAsyncThunk(
   async ({ bookingId, paymentStatus, transactionId }, { rejectWithValue }) => {
     try {
       const response = await axios.patch( // Changed to PATCH
-        `http://localhost:8000/api/v1/booking/update-booking-payment-status/${bookingId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/booking/update-booking-payment-status/${bookingId}`,
         { paymentStatus, transactionId },
         { withCredentials: true }
       );
@@ -128,7 +128,7 @@ export const cancelBooking = createAsyncThunk(
   async (bookingId, { rejectWithValue }) => {
     try {
       const response = await axios.patch( // Changed to PATCH
-        `http://localhost:8000/api/v1/booking/cancel-booking/${bookingId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/booking/cancel-booking/${bookingId}`,
         {}, // Empty body since it's a PATCH request
         { withCredentials: true }
       );
@@ -146,7 +146,7 @@ export const deleteBooking = createAsyncThunk(
   async (bookingId, { rejectWithValue }) => {
     try {
       const response = await axios.delete( // Changed to DELETE
-        `http://localhost:8000/api/v1/booking/delete-booking/${bookingId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/booking/delete-booking/${bookingId}`,
         { withCredentials: true }
       );
       return response.data;

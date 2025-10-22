@@ -9,8 +9,10 @@ import { Bounce, ToastContainer } from "react-toastify";
 import PageLayout from "../PageLayout/PageLayout";
 import { useRouteMetadata } from "@/hook/useRouteMetadata";
 
+
 const Root = () => {
   const [isLoading, setIsLoading] = useState(false);
+  console.log(import.meta.env.VITE_BACKEND_URL); 
   useRouteMetadata();
   const dispatch = useDispatch();
   useEffect(() => {

@@ -53,7 +53,7 @@ export const PaymentSuccess = () => {
 
     const autoConfirmPayment = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/v1/payment/auto-confirm', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/payment/auto-confirm`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ export const PaymentSuccess = () => {
             // Then verify payment status - REMOVED CUSTOM HEADERS
             const timestamp = new Date().getTime(); // For cache busting
             const response = await fetch(
-                `http://localhost:8000/api/v1/payment/validate/${tran_id}?t=${timestamp}`,
+                `${import.meta.env.VITE_BACKEND_URL}/payment/validate/${tran_id}?t=${timestamp}`,
                 { 
                     credentials: 'include'
                     // Removed problematic headers

@@ -7,7 +7,7 @@ export const getUserReviews = createAsyncThunk(
   'review/getUserReviews',
   async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/v1/review/get-review-user`, {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/review/get-review-user`, {
         params: { page, limit },
         withCredentials: true  
       });
@@ -24,7 +24,7 @@ export const createReview = createAsyncThunk(
   'review/createReview',
   async (reviewData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/review/create-review', reviewData,{
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/review/create-review`, reviewData,{
         withCredentials: true
       });
       return response.data;
@@ -39,7 +39,7 @@ export const updateReview = createAsyncThunk(
   'review/updateReview',
   async ({ reviewId, reviewData }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`http://localhost:8000/api/v1/review/update-review-id/${reviewId}`, reviewData);
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/review/update-review-id/${reviewId}`, reviewData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -52,7 +52,7 @@ export const deleteReview = createAsyncThunk(
   'review/deleteReview',
   async (reviewId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/v1/review/delete-review-id/${reviewId}`);
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/review/delete-review-id/${reviewId}`);
       return { reviewId, data: response.data };
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -65,7 +65,7 @@ export const getMessReviews = createAsyncThunk(
   'review/getMessReviews',
   async ({ messId, page = 1, limit = 10, rating, sortBy = 'createdAt', sortOrder = 'desc' }, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/v1/review/get-review-mess/${messId}`, {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/review/get-review-mess/${messId}`, {
         params: { page, limit, rating, sortBy, sortOrder }
       });
       return response.data;
@@ -80,7 +80,7 @@ export const getMessReviewStats = createAsyncThunk(
   'review/getMessReviewStats',
   async (messId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/v1/review/get-reviewstatuts-mess/${messId}`);
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/review/get-reviewstatuts-mess/${messId}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
