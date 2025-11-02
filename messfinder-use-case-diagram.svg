@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="900" version="1.1">
+  <style>
+    .actor { fill: #e1f5fe; stroke: #0288d1; stroke-width: 2; }
+    .usecase { fill: #e8f5e9; stroke: #388e3c; stroke-width: 2; rx: 20; ry: 15; }
+    .system { fill: none; stroke: #616161; stroke-width: 2; stroke-dasharray: 5,5; }
+    .connection { stroke: #616161; stroke-width: 1.5; fill: none; }
+    .extend { stroke: #616161; stroke-width: 1.5; fill: none; stroke-dasharray: 5,5; }
+    .include { stroke: #616161; stroke-width: 1.5; fill: none; stroke-dasharray: 2,2; }
+    text { font-family: Arial; font-size: 14px; }
+    .title { font-family: Arial; font-size: 24px; font-weight: bold; }
+    .subtitle { font-family: Arial; font-size: 16px; font-style: italic; }
+  </style>
+  
+  <!-- Title -->
+  <text x="600" y="30" text-anchor="middle" class="title">MessFinder - Use Case Diagram</text>
+  
+  <!-- System Boundary -->
+  <rect x="250" y="80" width="700" height="700" class="system" />
+  <text x="600" y="70" text-anchor="middle" class="subtitle">MessFinder System</text>
+  
+  <!-- Actors -->
+  <!-- Student Actor -->
+  <circle cx="120" cy="200" r="20" class="actor" />
+  <line x1="120" y1="220" x2="120" y2="270" class="connection" />
+  <line x1="90" y1="240" x2="150" y2="240" class="connection" />
+  <line x1="120" y1="270" x2="90" y2="320" class="connection" />
+  <line x1="120" y1="270" x2="150" y2="320" class="connection" />
+  <text x="120" y="350" text-anchor="middle">Student</text>
+  
+  <!-- Mess Owner Actor -->
+  <circle cx="120" cy="450" r="20" class="actor" />
+  <line x1="120" y1="470" x2="120" y2="520" class="connection" />
+  <line x1="90" y1="490" x2="150" y2="490" class="connection" />
+  <line x1="120" y1="520" x2="90" y2="570" class="connection" />
+  <line x1="120" y1="520" x2="150" y2="570" class="connection" />
+  <text x="120" y="600" text-anchor="middle">Mess Owner</text>
+  
+  <!-- Admin Actor -->
+  <circle cx="120" cy="700" r="20" class="actor" />
+  <line x1="120" y1="720" x2="120" y2="770" class="connection" />
+  <line x1="90" y1="740" x2="150" y2="740" class="connection" />
+  <line x1="120" y1="770" x2="90" y2="820" class="connection" />
+  <line x1="120" y1="770" x2="150" y2="820" class="connection" />
+  <text x="120" y="850" text-anchor="middle">Admin</text>
+  
+  <!-- Use Cases for Student -->
+  <ellipse cx="400" cy="150" rx="100" ry="30" class="usecase" />
+  <text x="400" y="155" text-anchor="middle">Register/Login</text>
+  <line x1="120" y1="200" x2="300" y2="150" class="connection" />
+  
+  <ellipse cx="400" cy="220" rx="100" ry="30" class="usecase" />
+  <text x="400" y="225" text-anchor="middle">Browse Mess Listings</text>
+  <line x1="120" y1="220" x2="300" y2="220" class="connection" />
+  
+  <ellipse cx="400" cy="290" rx="100" ry="30" class="usecase" />
+  <text x="400" y="295" text-anchor="middle">View Mess Details</text>
+  <line x1="120" y1="240" x2="300" y2="290" class="connection" />
+  
+  <ellipse cx="400" cy="360" rx="100" ry="30" class="usecase" />
+  <text x="400" y="365" text-anchor="middle">Book Mess Service</text>
+  <line x1="120" y1="260" x2="300" y2="360" class="connection" />
+  
+  <ellipse cx="650" cy="360" rx="100" ry="30" class="usecase" />
+  <text x="650" y="365" text-anchor="middle">Make Payment</text>
+  <line x1="500" y1="360" x2="550" y2="360" class="include" />
+  <text x="525" y="350" text-anchor="middle" font-style="italic" font-size="12">«include»</text>
+  
+  <ellipse cx="400" cy="430" rx="100" ry="30" class="usecase" />
+  <text x="400" y="435" text-anchor="middle">Submit Reviews</text>
+  <line x1="120" y1="280" x2="300" y2="430" class="connection" />
+  
+  <!-- Use Cases for Mess Owner -->
+  <ellipse cx="600" cy="150" rx="100" ry="30" class="usecase" />
+  <text x="600" y="155" text-anchor="middle">Register/Login</text>
+  <line x1="120" y1="450" x2="500" y2="150" class="connection" />
+  
+  <ellipse cx="600" cy="220" rx="100" ry="30" class="usecase" />
+  <text x="600" y="225" text-anchor="middle">Add Mess Details</text>
+  <line x1="120" y1="470" x2="500" y2="220" class="connection" />
+  
+  <ellipse cx="600" cy="290" rx="100" ry="30" class="usecase" />
+  <text x="600" y="295" text-anchor="middle">Update Mess Info</text>
+  <line x1="120" y1="490" x2="500" y2="290" class="connection" />
+  
+  <ellipse cx="600" cy="430" rx="100" ry="30" class="usecase" />
+  <text x="600" y="435" text-anchor="middle">Manage Bookings</text>
+  <line x1="120" y1="510" x2="500" y2="430" class="connection" />
+  
+  <ellipse cx="600" cy="500" rx="100" ry="30" class="usecase" />
+  <text x="600" y="505" text-anchor="middle">View Reviews</text>
+  <line x1="120" y1="530" x2="500" y2="500" class="connection" />
+  
+  <!-- Use Cases for Admin -->
+  <ellipse cx="800" cy="570" rx="100" ry="30" class="usecase" />
+  <text x="800" y="575" text-anchor="middle">Manage Users</text>
+  <line x1="120" y1="700" x2="700" y2="570" class="connection" />
+  
+  <ellipse cx="800" cy="640" rx="100" ry="30" class="usecase" />
+  <text x="800" y="645" text-anchor="middle">Manage Mess Listings</text>
+  <line x1="120" y1="720" x2="700" y2="640" class="connection" />
+  
+  <ellipse cx="800" cy="710" rx="100" ry="30" class="usecase" />
+  <text x="800" y="715" text-anchor="middle">View Reports</text>
+  <line x1="120" y1="740" x2="700" y2="710" class="connection" />
+  
+  <ellipse cx="800" cy="780" rx="100" ry="30" class="usecase" />
+  <text x="800" y="785" text-anchor="middle">Manage System</text>
+  <line x1="120" y1="760" x2="700" y2="780" class="connection" />
+  
+  <!-- Legend -->
+  <rect x="900" y="800" width="20" height="10" class="usecase" />
+  <text x="930" y="810">Use Case</text>
+  
+  <line x1="900" y1="830" x2="920" y2="830" class="connection" />
+  <text x="950" y="835">Association</text>
+  
+  <line x1="900" y1="850" x2="920" y2="850" class="include" />
+  <text x="950" y="855">Include</text>
+  
+  <line x1="900" y1="870" x2="920" y2="870" class="extend" />
+  <text x="950" y="875">Extend</text>
+</svg>
