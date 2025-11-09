@@ -136,9 +136,6 @@ export default function AddMessDetails() {
           setTimeout(() => {
             navigate('/mess/owner');
           }, 1000);
-        } else {
-          toast.success("Mess added successfully!");
-          resetForm();
         }
         
         const timer = setTimeout(() => {
@@ -295,7 +292,13 @@ export default function AddMessDetails() {
           submitFormData.append('images', image);
         });
 
-        await dispatch(addMess(submitFormData)).unwrap();
+        await dispatch(addMess(submitFormData)).unwrap().then(res=>{
+          if(res.success){
+            toast.success(res.message)
+            // resetForm()
+          }
+        }
+        );
       }
     } catch (error) {
       console.error("Submission error:", error);

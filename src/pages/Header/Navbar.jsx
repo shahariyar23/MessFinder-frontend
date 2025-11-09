@@ -33,9 +33,12 @@ const Navbar = () => {
     <nav className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7eff3] px-10 py-3">
       {/* Brand Section */}
       <div className="flex items-center w-1/2 gap-10">
-        <div onClick={()=> nevigate("/")} className="flex items-center gap-2 cursor-pointer">
+        <div
+          onClick={() => nevigate("/")}
+          className="flex items-center gap-2 cursor-pointer"
+        >
           {/* Logo */}
-          <div >
+          <div>
             <svg
               className="w-[20px]"
               viewBox="0 0 48 48"
@@ -155,7 +158,7 @@ const Navbar = () => {
             Home
           </NavLink>
           <NavLink
-            to="/mess/listin"
+            to="/mess/listing"
             className="text-[#0d171b] text-base font-medium"
             onClick={() => setIsOpen(false)}
           >
@@ -176,7 +179,7 @@ const Navbar = () => {
             Contact
           </NavLink>
           {user?.name ? (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4" onClick={() => setIsOpen(false)}>
               <Link to={`/profile/${user.id}`}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -201,10 +204,16 @@ const Navbar = () => {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              <Button variant="nav" onClick={() => nevigate("/signup")}>
+              <Button
+                variant="nav"
+                onClick={() => {
+                  nevigate("/signup");
+                  setIsOpen(false);
+                }}
+              >
                 Sign up
               </Button>
-              <Button variant="login" onClick={() => nevigate("/login")}>
+              <Button variant="login" onClick={() => {nevigate("/login"); setIsOpen(false)}}>
                 Login
               </Button>
             </div>

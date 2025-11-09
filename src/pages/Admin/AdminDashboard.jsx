@@ -78,7 +78,7 @@ export default function AdminDashboard() {
           {activeTab === "payments" && (
             <PaymentsHistory/>
           )}
-          {activeTab === "approvals" && (
+          {activeTab === "reportgenerate" && (
             <PendingApprovals/>
           )}
         </main>

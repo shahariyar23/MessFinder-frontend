@@ -21,7 +21,8 @@ import {
     Banknote,
     WalletCards,
     Command,
-    UserStar
+    UserStar,
+    ClipboardPlus
 
 } from "lucide-react";
 
@@ -371,5 +372,6 @@ export const adminLinks = [
   { value: "user-activity", label: "User Activity", icon: Users },
   { value: "owner-activity", label: "Owner Activity", icon: User },
   { value: "payments", label: "Payments", icon: DollarSign },
-  { value: "approvals", label: "Approvals", icon: CloudCheck },
+  { value: "booking", label: "All Booking", icon: BookOpen },
+  { value: "reportgenerate", label: "Report Generate", icon: ClipboardPlus },
 ];

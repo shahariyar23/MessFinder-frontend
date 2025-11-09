@@ -196,7 +196,8 @@ export const router = createBrowserRouter([
           },
           { 
             path: "listing", 
-            Component: Messlisting,
+            element: 
+                <Messlisting/>,
             handle: {
               title: "Mess Listing - Mess Finder",
               meta: {
@@ -207,7 +208,9 @@ export const router = createBrowserRouter([
           },
           { 
             path: "info/:messId", 
-            Component: SingleMess,
+            element:<Protected>
+              <SingleMess/>
+              </Protected> ,
             handle: {
               title: "Mess Details - Mess Finder",
               meta: {
