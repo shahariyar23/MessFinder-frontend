@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Add New Mess with FormData
 export const addMess = createAsyncThunk(
   "mess/add",
   async (formData, { rejectWithValue }) => {
@@ -16,10 +15,13 @@ export const addMess = createAsyncThunk(
           }
         }
       );
-      
       return response.data;
       
     } catch (error) {
+      // Log error for debugging (separate from return)
+      console.log("Backend error:", error);
+      
+      // Return the actual error message
       return rejectWithValue(
         error.response?.data || { 
           success: false, 
@@ -100,6 +102,22 @@ export const advancedSearchMesses = createAsyncThunk(
     }
   }
 );
+
+export const deleteMess = createAsyncThunk(
+  "mess/delete",
+  async({ rejectWithValue }) =>{
+    try {
+      console.log("calling delete mess function")
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || {
+          success: false,
+          message: "Something is wrong"
+        }
+      ) 
+    }
+  }
+)
 
 
 

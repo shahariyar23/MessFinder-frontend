@@ -1,7 +1,7 @@
 import UserProfile from "@/components/Users/UserProfile";
 import About from "@/pages/About/About";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
-import AdminRoot from "@/pages/Admin/AdminRoot";
+import AdminLayout from "@/pages/Admin/AdminDashboard"; 
 import AdminUserProfile from "@/pages/Admin/AdminUserProfile";
 import ForgotPassword from "@/pages/Auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "@/pages/Auth/ForgotPassword/ResetPassword";
@@ -16,12 +16,12 @@ import Mess from "@/pages/Mess/Mess";
 import Messlisting from "@/pages/Mess/Messlisting";
 import MessRoot from "@/pages/Mess/MessRoot";
 import { PaymentFailed } from "@/pages/Mess/PaymentFailed";
-import {PaymentSuccess} from "@/pages/Mess/PaymentSuccess";
+import { PaymentSuccess } from "@/pages/Mess/PaymentSuccess";
 import SingleMess from "@/pages/Mess/SingleMess";
 import NotFound from "@/pages/NotFound/NotFound";
 import Protected from "@/pages/Protected/Protected";
 import Root from "@/pages/Root/Root";
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter } from "react-router"; 
 
 export const router = createBrowserRouter([
   {
@@ -63,7 +63,11 @@ export const router = createBrowserRouter([
       },
       { 
         path: "signup", 
-        Component: Signup,
+        element: (
+          <Protected preventAuthenticated={true}>
+            <Signup />
+          </Protected>
+        ),
         handle: {
           title: "Sign Up - Mess Finder",
           meta: {
@@ -74,7 +78,11 @@ export const router = createBrowserRouter([
       },
       { 
         path: "login", 
-        Component: Login,
+        element: (
+          <Protected preventAuthenticated={true}>
+            <Login />
+          </Protected>
+        ),
         handle: {
           title: "Login - Mess Finder",
           meta: {
@@ -118,7 +126,11 @@ export const router = createBrowserRouter([
       },
       { 
         path: "payment/success", 
-        Component: PaymentSuccess,
+        element: (
+          <Protected>
+            <PaymentSuccess />
+          </Protected>
+        ),
         handle: {
           title: "Payment Successful - Mess Finder",
           meta: {
@@ -129,7 +141,11 @@ export const router = createBrowserRouter([
       },
       { 
         path: "payment/failed", 
-        Component: PaymentFailed,
+        element: (
+          <Protected>
+            <PaymentFailed />
+          </Protected>
+        ),
         handle: {
           title: "Payment Failed - Mess Finder",
           meta: {
@@ -140,7 +156,11 @@ export const router = createBrowserRouter([
       },
       { 
         path: "payment/cancel", 
-        Component: PaymentFailed,
+        element: (
+          <Protected>
+            <PaymentFailed />
+          </Protected>
+        ),
         handle: {
           title: "Payment Cancelled - Mess Finder",
           meta: {
@@ -167,7 +187,7 @@ export const router = createBrowserRouter([
       {
         path: "mess/add",
         element: (
-          <Protected>
+          <Protected requiredRole="owner"> {/* Added role protection */}
             <AddMessDetails />
           </Protected>
         ),
@@ -185,7 +205,7 @@ export const router = createBrowserRouter([
         children: [
           { 
             index: true, 
-            Component: MessRoot,
+            Component: Messlisting,
             handle: {
               title: "Mess Services - Mess Finder",
               meta: {
@@ -196,8 +216,7 @@ export const router = createBrowserRouter([
           },
           { 
             path: "listing", 
-            element: 
-                <Messlisting/>,
+            Component: Messlisting,
             handle: {
               title: "Mess Listing - Mess Finder",
               meta: {
@@ -208,9 +227,7 @@ export const router = createBrowserRouter([
           },
           { 
             path: "info/:messId", 
-            element:<Protected>
-              <SingleMess/>
-              </Protected> ,
+            Component: SingleMess, // Removed Protected wrapper for public access
             handle: {
               title: "Mess Details - Mess Finder",
               meta: {
@@ -222,7 +239,7 @@ export const router = createBrowserRouter([
           {
             path: "booking/:messId",
             element: (
-              <Protected>
+              <Protected requiredRole="student"> {/* Added role protection */}
                 <Booking />
               </Protected>
             ),
@@ -250,8 +267,12 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: "admin",
-    Component: AdminDashboard,
+    path: "/admin",
+    element: (
+      <Protected requiredRole="admin">
+        <AdminLayout /> {/* Fixed: Changed from AdminRoot to AdminLayout */}
+      </Protected>
+    ),
     children: [
       { 
         index: true, 
@@ -265,7 +286,7 @@ export const router = createBrowserRouter([
         }
       },
       { 
-        path: ":userName/:userId", 
+        path: "users/:userId", 
         Component: AdminUserProfile,
         handle: {
           title: "User Management - Mess Finder",

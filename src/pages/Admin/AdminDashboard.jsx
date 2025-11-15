@@ -8,6 +8,9 @@ import MessListings from "./MessListings";
 import MessOwners from "./MessOwners";
 import MessUsers from "./MessUsers";
 import PendingApprovals from "./PendingApprovals";
+import { useDispatch } from "react-redux";
+import { logoutUser } from "@/store/auth/authSlice";
+import { toast } from "react-toastify";
 
 
 
@@ -15,7 +18,16 @@ import PendingApprovals from "./PendingApprovals";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
-
+  const dispatch = useDispatch()
+const handleLogout = () => {
+    dispatch(logoutUser()).then((res) => {
+      if (res?.payload?.success) {
+        toast.success(`${res.payload.message}`);
+      } else {
+        toast.success(`${res.payload.message}`);
+      }
+    });
+  };
   return (
     <div className="min-h-screen w-full bg-slate-50">
       <div className="flex flex-col lg:flex-row min-h-screen w-full">
@@ -47,7 +59,7 @@ export default function AdminDashboard() {
           <div className="mt-4 flex flex-col gap-1">
             <button
               className="flex items-cente cursor-pointer gap-3 px-3 py-2 rounded-lg bg-[#13a4ec] text-white font-medium text-sm transition hover:bg-[#0d81c3]"
-              
+              onClick={handleLogout}
             >
               <LogIn size={24} />
               SignOut

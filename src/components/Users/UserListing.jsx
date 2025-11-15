@@ -22,6 +22,9 @@ const UserListing = ({
     const [statusFilter, setStatusFilter] = useState("");
     const [filteredUsers, setFilteredUsers] = useState([]);
 
+    // Debug: Log the incoming data
+    // console.log("DEBUG - UserListing received:", users);
+
     // Filter users based on search term and status
     useEffect(() => {
         let filtered = users;
@@ -57,6 +60,12 @@ const UserListing = ({
     const handleStatusToggle = (user) => {
         if (onStatusChange) {
             const newStatus = user.status === "Active" ? "Suspended" : "Active";
+            // console.log("DEBUG - Toggling status:", {
+            //     userId: user.id,
+            //     currentStatus: user.status,
+            //     newStatus: newStatus,
+            //     userData: user
+            // });
             onStatusChange(user.id, newStatus);
         }
     };
@@ -65,6 +74,14 @@ const UserListing = ({
         if (onDeleteUser) {
             onDeleteUser(userId);
         }
+    };
+
+    // Helper function to get status color
+    const getStatusColor = (status) => {
+        const statusLower = status?.toLowerCase();
+        if (statusLower === "active") return "bg-green-100 text-green-700";
+        if (statusLower === "suspended" || statusLower === "block") return "bg-red-100 text-red-700";
+        return "bg-gray-100 text-gray-700";
     };
 
     return (
@@ -112,7 +129,7 @@ const UserListing = ({
                             <TableRow>
                                 <TableHead className="px-4 py-3 text-left text-[#0d171b] text-sm font-medium w-44">{user} Name</TableHead>
                                 <TableHead className="px-4 py-3 text-left text-[#0d171b] text-sm font-medium w-44">Contact</TableHead>
-                                <TableHead className="px-4 py-3 text-left text-[#0d171b] text-sm font-medium w-44">Listings</TableHead>
+                                <TableHead className="px-4 py-3 text-left text-[#0d171b] text-sm font-medium w-44">{user == "Owners" ? "Listing" : "Booking"}</TableHead>
                                 <TableHead className="px-4 py-3 text-left text-[#0d171b] text-sm font-medium w-32">Status</TableHead>
                                 <TableHead className="px-4 py-3 text-left text-[#4c809a] text-sm font-medium w-32">Actions</TableHead>
                             </TableRow>
@@ -131,53 +148,49 @@ const UserListing = ({
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                filteredUsers.map((row, idx) => (
-                                    <TableRow key={row.id || idx} className="border-t border-[#cfdfe7]">
-                                        <TableCell className="h-[72px] px-4 py-2 text-[#0d171b] text-sm">
-                                            {row.name}
-                                        </TableCell>
-                                        <TableCell className="h-[72px] px-4 py-2 text-[#4c809a] text-sm">
-                                            <a href={`mailto:${row.contact}`} className="hover:underline">
-                                                {row.contact}
-                                            </a>
-                                        </TableCell>
-                                        <TableCell className="h-[72px] px-4 py-2 text-[#4c809a] text-sm">
-                                            {row.listings}
-                                        </TableCell>
-                                        <TableCell className="h-[72px] px-4 py-2 w-32">
-                                            <button className={`flex min-w-[84px] max-w-xs items-center justify-center rounded-lg h-8 px-4 ${row.statusColor} text-[#0d171b] text-sm font-medium w-full`}>
-                                                <span
-                                                    className={`truncate ${row.status.toLowerCase() === "active"
-                                                            ? " text-green-700"
-                                                            : (row.status.toLowerCase() === "suspended" || row.status.toLowerCase() === "block")
-                                                                ? " text-red-700"
-                                                                : ""
-                                                        }`}
-                                                >
-                                                    {row.status}
-                                                </span>
-                                            </button>
-                                        </TableCell>
-                                        <TableCell className="h-[72px] px-4 py-2 w-32">
-                                            <div className="flex gap-2">
-                                                <button 
-                                                    onClick={() => handleStatusToggle(row)}
-                                                    className="text-blue-600 hover:text-blue-900 text-sm font-bold tracking-wide cursor-pointer"
-                                                    disabled={loading}
-                                                >
-                                                    {row.status === "Active" ? "Suspend" : "Activate"}
+                                filteredUsers.map((row, idx) => {
+                                    // console.log("DEBUG - Rendering row:", row);
+                                    return (
+                                        <TableRow key={row.id || idx} className="border-t border-[#cfdfe7]">
+                                            <TableCell className="h-[72px] px-4 py-2 text-[#0d171b] text-sm">
+                                                {row.name}
+                                            </TableCell>
+                                            <TableCell className="h-[72px] px-4 py-2 text-[#4c809a] text-sm">
+                                                <a href={`mailto:${row.contact}`} className="hover:underline">
+                                                    {row.contact}
+                                                </a>
+                                            </TableCell>
+                                            <TableCell className="h-[72px] px-4 py-2 text-[#4c809a] text-sm">
+                                                {row.listings}
+                                            </TableCell>
+                                            <TableCell className="h-[72px] px-4 py-2 w-32">
+                                                <button className={`flex min-w-[84px] max-w-xs items-center justify-center rounded-lg h-8 px-4 ${getStatusColor(row.status)} text-sm font-medium w-full`}>
+                                                    <span className="truncate">
+                                                        {row.status}
+                                                    </span>
                                                 </button>
-                                                <button 
-                                                    onClick={() => handleDelete(row.id)}
-                                                    className="text-red-600 hover:text-red-900 text-sm font-bold tracking-wide cursor-pointer"
-                                                    disabled={loading}
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
+                                            </TableCell>
+                                            <TableCell className="h-[72px] px-4 py-2 w-32">
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={() => handleStatusToggle(row)}
+                                                        className="text-blue-600 hover:text-blue-900 text-sm font-bold tracking-wide cursor-pointer"
+                                                        disabled={loading}
+                                                    >
+                                                        {row.status === "Active" ? "Suspend" : "Activate"}
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDelete(row.id)}
+                                                        className="text-red-600 hover:text-red-900 text-sm font-bold tracking-wide cursor-pointer"
+                                                        disabled={loading}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })
                             )}
                         </TableBody>
                     </Table>

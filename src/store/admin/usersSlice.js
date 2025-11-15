@@ -9,7 +9,7 @@ export const deleteUser = createAsyncThunk(
   'users/deleteUser',
   async (userId, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(`${api}/admin/users/${userId}`, {
+      const response = await axios.delete(`${api}/admin/delete-user/${userId}`, {
         withCredentials: true,
       });
       return response.data;
@@ -23,7 +23,7 @@ export const deleteOwner = createAsyncThunk(
   'users/deleteOwner',
   async (ownerId, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(`${api}/admin/owners/${ownerId}`, {
+      const response = await axios.delete(`${api}/admin/delete-owner/${ownerId}`, {
         withCredentials: true,
       });
       return response.data;
@@ -37,7 +37,7 @@ export const modifyUser = createAsyncThunk(
   'users/modifyUser',
   async ({ userId, userData }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`${api}/admin/users/${userId}`, userData, {
+      const response = await axios.put(`${api}/admin/modify-user/${userId}`, userData, {
         withCredentials: true,
       });
       return response.data;
@@ -49,9 +49,9 @@ export const modifyUser = createAsyncThunk(
 
 export const modifyOwner = createAsyncThunk(
   'users/modifyOwner',
-  async ({ ownerId, ownerData }, { rejectWithValue }) => {
+  async ({ userId, userData }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`${api}/admin/owners/${ownerId}`, ownerData, {
+      const response = await axios.put(`${api}/admin/modify-owner/${userId}`, userData, {
         withCredentials: true,
       });
       return response.data;
@@ -61,18 +61,17 @@ export const modifyOwner = createAsyncThunk(
   }
 );
 
+
+
 export const getUserStatistics = createAsyncThunk(
   'users/getUserStatistics',
   async (_, { rejectWithValue }) => {
-    console.log("calling getuserstatistics function");
     try {
       const response = await axios.get(`${api}/admin/get-user-statistics`, {
         withCredentials: true,
       });
-      console.log(response);
       return response.data;
     } catch (error) {
-      console.log(error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -98,13 +97,13 @@ export const bulkUserActions = createAsyncThunk(
 // Get all students
 export const getAllStudents = createAsyncThunk(
   'users/getAllStudents',
-  async ({ page = 1, limit = 10, search = '' } = {}, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10, search = '', role="student" } = {}, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${api}/admin/get-students`, {
-        params: { page, limit, search },
+      const response = await axios.get(`${api}/admin/get-users`, {
+        params: { page, limit, search, role },
         withCredentials: true,
       });
-      return response.data;
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -114,12 +113,13 @@ export const getAllStudents = createAsyncThunk(
 // Get all owners
 export const getAllOwners = createAsyncThunk(
   'users/getAllOwners',
-  async ({ page = 1, limit = 10, search = '' } = {}, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10, search = '', role= "owner" } = {}, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${api}/admin/get-owners`, {
-        params: { page, limit, search },
+      const response = await axios.get(`${api}/admin/get-users`, {
+        params: { page, limit, search, role },
         withCredentials: true,
       });
+      console.log("get all owner: ", response.data)
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -162,6 +162,7 @@ const initialState = {
       currentPage: 1,
       totalPages: 1,
       totalOwners: 0,
+      totalMessCount: 0,   
       hasNext: false,
       hasPrev: false
     }
@@ -221,8 +222,8 @@ const usersSlice = createSlice({
       .addCase(getAllStudents.fulfilled, (state, action) => {
         state.loading = false;
         // Update students data based on API response structure
-        state.students.list = action.payload.data?.students || [];
-        state.students.pagination = action.payload.data?.pagination || initialState.students.pagination;
+        state.students.list = action.payload?.users || [];
+        state.students.pagination = action.payload?.pagination || initialState.students.pagination;
       })
       .addCase(getAllStudents.rejected, (state, action) => {
         state.loading = false;
@@ -237,7 +238,8 @@ const usersSlice = createSlice({
       .addCase(getAllOwners.fulfilled, (state, action) => {
         state.loading = false;
         // Update owners data based on API response structure
-        state.owners.list = action.payload.data?.students || []; // Note: Your API returns "students" field for owners
+        console.log(action.payload , "user admin slice")
+        state.owners.list = action.payload.data?.users || []; 
         state.owners.pagination = action.payload.data?.pagination || initialState.owners.pagination;
       })
       .addCase(getAllOwners.rejected, (state, action) => {

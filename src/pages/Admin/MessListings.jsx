@@ -24,28 +24,332 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, MoreHorizontal, Eye, Edit, Trash2, Filter } from "lucide-react";
 import { 
-  getAllMesses, 
+  Search, 
+  MoreHorizontal, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  Filter,
+  X,
+  
+} from "lucide-react";
+import { 
   advancedSearchMesses, 
   updateFilters, 
   clearFilters,
-  setCurrentPage 
+  setCurrentPage,
+  getMessById
 } from '@/store/mess/messSlice';
+import { 
+  deleteMess, 
+  getAllMesses, // ✅ Import from admin slice
+  updateMess,
+} from '@/store/admin/adminMessSlice';
+import { ViewModal } from './ViewModal';
+import { toast } from 'react-toastify';
+import { DeleteModal } from './MessDelete';
+
+const EditModal = ({ mess, isOpen, onClose, onSave }) => {
+  const [formData, setFormData] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (mess) {
+      setFormData({
+        title: mess.title || '',
+        description: mess.description || '',
+        address: mess.address || '',
+        payPerMonth: mess.payPerMonth || '',
+        status: mess.status || 'free',
+        roomType: mess.roomType || 'Shared',
+        genderPreference: mess.genderPreference || 'Male',
+        contact: mess.contact || '',
+        availableFrom: mess.availableFrom ? mess.availableFrom.split('T')[0] : '',
+        advancePaymentMonth: mess.advancePaymentMonth || 1,
+        facilities: Array.isArray(mess.facilities) ? mess.facilities : [],
+        roomFeatures: Array.isArray(mess.roomFeatures) ? mess.roomFeatures : []
+      });
+    }
+  }, [mess]);
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleArrayChange = (field, value, checked) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: checked 
+        ? [...(prev[field] || []), value]
+        : (prev[field] || []).filter(item => item !== value)
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const processedData = {
+        ...formData,
+        title: formData.title || 'Untitled Mess',
+        payPerMonth: Number(formData.payPerMonth) || 0,
+        advancePaymentMonth: Number(formData.advancePaymentMonth) || 1,
+        status: formData.status || 'free',
+        roomType: formData.roomType || 'Shared',
+        genderPreference: formData.genderPreference || 'Male',
+        facilities: Array.isArray(formData.facilities) ? formData.facilities : [],
+        roomFeatures: Array.isArray(formData.roomFeatures) ? formData.roomFeatures : [],
+      };
+
+      const updateData = { updateData: processedData };
+      
+      console.log('Sending update data:', updateData);
+      
+      await onSave(mess._id, updateData);
+      onClose();
+    } catch (error) {
+      console.error('Error updating mess:', error);
+      toast.error('Failed to update mess listing');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!isOpen || !mess) return null;
+
+  const facilityOptions = ["Wi-Fi", "Meals", "Laundry", "Lifts", "Water Filter", "Freezer"];
+  const roomFeatureOptions = ["Master Bed", "Attached Bath", "Balcony", "Furnished", "AC", "Geyser"];
+  const genderOptions = ["Male", "Female"];
+  const roomTypeOptions = ["Single", "Shared", "Double", "Suite"];
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-bold text-gray-900">Edit Mess Listing</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Title *</label>
+              <Input
+                value={formData.title}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="Mess title"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Price per Month (৳) *</label>
+              <Input
+                type="number"
+                value={formData.payPerMonth}
+                onChange={(e) => handleChange('payPerMonth', e.target.value)}
+                placeholder="5000"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Status</label>
+              <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="booked">Booked</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Room Type</label>
+              <Select value={formData.roomType} onValueChange={(value) => handleChange('roomType', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {roomTypeOptions.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Gender Preference</label>
+              <Select value={formData.genderPreference} onValueChange={(value) => handleChange('genderPreference', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {genderOptions.map(gender => (
+                    <SelectItem key={gender} value={gender}>{gender}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Advance Payment (Months)</label>
+              <Input
+                type="number"
+                min="1"
+                max="3"
+                value={formData.advancePaymentMonth}
+                onChange={(e) => handleChange('advancePaymentMonth', parseInt(e.target.value))}
+                placeholder="1"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Address *</label>
+            <Input
+              value={formData.address}
+              onChange={(e) => handleChange('address', e.target.value)}
+              placeholder="Full address"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Contact Number *</label>
+            <Input
+              value={formData.contact}
+              onChange={(e) => handleChange('contact', e.target.value)}
+              placeholder="01761208866"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Description</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => handleChange('description', e.target.value)}
+              placeholder="Describe your mess service..."
+              rows="4"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Available From</label>
+            <Input
+              type="date"
+              value={formData.availableFrom}
+              onChange={(e) => handleChange('availableFrom', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-700">Facilities</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {facilityOptions.map(facility => (
+                <div key={facility} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`facility-${facility}`}
+                    checked={formData.facilities?.includes(facility) || false}
+                    onChange={(e) => handleArrayChange('facilities', facility, e.target.checked)}
+                    className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                  />
+                  <label htmlFor={`facility-${facility}`} className="text-sm text-gray-700">
+                    {facility}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-gray-700">Room Features</label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {roomFeatureOptions.map(feature => (
+                <div key={feature} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`feature-${feature}`}
+                    checked={formData.roomFeatures?.includes(feature) || false}
+                    onChange={(e) => handleArrayChange('roomFeatures', feature, e.target.checked)}
+                    className="w-4 h-4 text-sky-600 border-gray-300 rounded focus:ring-sky-500"
+                  />
+                  <label htmlFor={`feature-${feature}`} className="text-sm text-gray-700">
+                    {feature}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Owner Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+              <div>
+                <span className="font-medium">Name:</span> {mess.owner_name}
+              </div>
+              <div>
+                <span className="font-medium">Email:</span> {mess.owner_email}
+              </div>
+              <div>
+                <span className="font-medium">Phone:</span> {mess.owner_phone}
+              </div>
+            </div>
+          </div>
+        </form>
+        
+        <div className="flex justify-end gap-3 p-6 border-t">
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            disabled={isLoading}
+            className="bg-sky-600 hover:bg-sky-700"
+          >
+            {isLoading ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function MessListings() {
   const dispatch = useDispatch();
   
-  const messes = useSelector((state) => state.mess.messes);
-  const pagination = useSelector((state) => state.mess.pagination);
-  const filters = useSelector((state) => state.mess.filters);
-  const isLoading = useSelector((state) => state.mess.isLoading);
-  const isSearchLoading = useSelector((state) => state.mess.isSearchLoading);
+  // ✅ Use adminMess state instead of mess state
+  const messes = useSelector((state) => state.adminMess.messes || []);
+  const pagination = useSelector((state) => state.adminMess.pagination || {
+    currentPage: 1,
+    totalPages: 1,
+    totalMesses: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
+  const filters = useSelector((state) => state.mess.filters); // Keep filters from mess slice
+  const isLoading = useSelector((state) => state.adminMess.isLoading);
   
   const [searchInput, setSearchInput] = useState(filters.search || '');
   const [debouncedSearch, setDebouncedSearch] = useState(searchInput);
+  
+  const [viewModal, setViewModal] = useState({ isOpen: false, mess: null });
+  const [editModal, setEditModal] = useState({ isOpen: false, mess: null });
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, mess: null });
 
-  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchInput);
@@ -54,21 +358,66 @@ export default function MessListings() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // Fetch messes when filters change
   useEffect(() => {
     const searchParams = {
       ...filters,
       search: debouncedSearch,
       page: filters.page || 1,
-      limit: filters.limit || 10
+      limit: filters.limit || 10,
     };
     
-    if (debouncedSearch || filters.location || filters.roomType || filters.gender) {
-      dispatch(advancedSearchMesses(searchParams));
-    } else {
-      dispatch(getAllMesses(searchParams));
+    // ✅ Use getAllMesses from admin slice
+    dispatch(getAllMesses(searchParams));
+  }, [debouncedSearch, filters.page, dispatch]);
+
+  const handleView = async (mess) => {
+    try {
+      await dispatch(getMessById(mess._id));
+      setViewModal({ isOpen: true, mess });
+    } catch (error) {
+      console.error('Error fetching mess details:', error);
+      setViewModal({ isOpen: true, mess });
     }
-  }, [debouncedSearch, filters.location, filters.roomType, filters.gender, filters.page, dispatch]);
+  };
+
+  const handleEdit = (mess) => {
+    setEditModal({ isOpen: true, mess });
+  };
+
+  const handleDelete = (mess) => {
+    setDeleteModal({ isOpen: true, mess });
+  };
+
+  const handleSaveEdit = async (messId, updateData) => {
+    try {
+      console.log('Updating mess:', messId, updateData);
+      
+      const result = await dispatch(updateMess({ messId, updateData }));
+      
+      if (result.payload?.success) {
+        toast.success('Mess updated successfully');
+        // ✅ Refresh using admin slice
+        dispatch(getAllMesses(filters));
+      } else {
+        toast.error(result.payload?.message || 'Failed to update mess');
+      }
+    } catch (error) {
+      console.error('Update error:', error);
+      toast.error('Failed to update mess listing');
+    }
+  };
+
+  const handleConfirmDelete = async (messId) => {
+    await dispatch(deleteMess({messId})).then(res => {
+      if(res?.payload?.success){
+        toast.success(res?.payload.message)
+      }else{
+        toast.error(res?.payload)
+      }
+    });
+    // ✅ Refresh using admin slice
+    dispatch(getAllMesses(filters));
+  };
 
   const handleSearchChange = (value) => {
     setSearchInput(value);
@@ -85,7 +434,7 @@ export default function MessListings() {
   };
 
   const handlePageChange = (newPage) => {
-    dispatch(setCurrentPage(newPage));
+    dispatch(updateFilters({ page: newPage }));
   };
 
   const getStatusColor = (status) => {
@@ -106,7 +455,7 @@ export default function MessListings() {
   };
 
   const formatPrice = (price) => {
-    return `৳${price?.toLocaleString()}`;
+    return `৳ ${price?.toLocaleString()}`;
   };
 
   const formatDate = (dateString) => {
@@ -132,7 +481,6 @@ export default function MessListings() {
 
   return (
     <div className="flex flex-col max-w-[960px] mx-auto flex-1 w-full">
-      {/* Header */}
       <div className="flex flex-wrap justify-between gap-3 p-4">
         <p className="text-[#0d171b] font-bold text-2xl sm:text-4xl min-w-32">
           Mess Listings
@@ -153,7 +501,6 @@ export default function MessListings() {
         </Button>
       </div>
 
-      {/* Search Input */}
       <div className="px-4 py-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -166,13 +513,11 @@ export default function MessListings() {
         </div>
       </div>
 
-      {/* Filter Options */}
       <h2 className="text-[#0d171b] text-xl sm:text-2xl font-bold px-4 pb-3 pt-5">
         Filter Options
       </h2>
       
       <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-        {/* Location Filter */}
         <div className="flex flex-col min-w-40 flex-1">
           <Select
             value={filters.location || 'all'}
@@ -193,7 +538,6 @@ export default function MessListings() {
           </Select>
         </div>
 
-        {/* Room Type Filter */}
         <div className="flex flex-col min-w-40 flex-1">
           <Select
             value={filters.roomType || 'all'}
@@ -211,7 +555,6 @@ export default function MessListings() {
           </Select>
         </div>
 
-        {/* Gender Preference Filter */}
         <div className="flex flex-col min-w-40 flex-1">
           <Select
             value={filters.gender || 'all'}
@@ -229,15 +572,12 @@ export default function MessListings() {
         </div>
       </div>
 
-      {/* Results Count */}
       <div className="px-4 py-2">
         <p className="text-sm text-gray-600">
           Showing {messes.length} of {pagination.totalMesses} mess listings
-          {isSearchLoading && ' (Searching...)'}
         </p>
       </div>
 
-      {/* Mess Listings Table */}
       <h2 className="text-[#0d171b] text-xl sm:text-2xl font-bold px-4 pb-3 pt-5">
         Mess Listings Overview
       </h2>
@@ -248,7 +588,7 @@ export default function MessListings() {
             <TableHeader>
               <TableRow>
                 <TableHead className="px-4 py-3 text-left text-[#0d171b] text-sm font-medium min-w-[200px]">
-                  Listing Name
+                 Mess Name
                 </TableHead>
                 <TableHead className="px-4 py-3 text-left text-[#0d171b] text-sm font-medium min-w-[150px]">
                   Location
@@ -311,15 +651,18 @@ export default function MessListings() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleView(mess)}>
                             <Eye className="w-4 h-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(mess)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => handleDelete(mess)}
+                          >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
                           </DropdownMenuItem>
@@ -331,7 +674,7 @@ export default function MessListings() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                    {isSearchLoading ? (
+                    {isLoading ? (
                       <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sky-600"></div>
                         <span className="ml-2">Loading mess listings...</span>
@@ -357,7 +700,6 @@ export default function MessListings() {
         </div>
       </div>
 
-      {/* Pagination */}
       {pagination.totalPages > 1 && (
         <div className="flex justify-between items-center px-4 py-4 border-t">
           <div className="text-sm text-gray-600">
@@ -368,7 +710,7 @@ export default function MessListings() {
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(pagination.currentPage - 1)}
-              disabled={!pagination.hasPrev || isSearchLoading}
+              disabled={!pagination.hasPrev || isLoading}
             >
               Previous
             </Button>
@@ -376,13 +718,33 @@ export default function MessListings() {
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={!pagination.hasNext || isSearchLoading}
+              disabled={!pagination.hasNext || isLoading}
             >
               Next
             </Button>
           </div>
         </div>
       )}
+
+      <ViewModal
+        mess={viewModal.mess}
+        isOpen={viewModal.isOpen}
+        onClose={() => setViewModal({ isOpen: false, mess: null })}
+      />
+
+      <EditModal
+        mess={editModal.mess}
+        isOpen={editModal.isOpen}
+        onClose={() => setEditModal({ isOpen: false, mess: null })}
+        onSave={handleSaveEdit}
+      />
+
+      <DeleteModal
+        mess={deleteModal.mess}
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, mess: null })}
+        onDelete={handleConfirmDelete}
+      />
     </div>
   );
 }

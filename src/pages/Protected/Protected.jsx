@@ -4,35 +4,30 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router";
 
-const Protected = ({ children }) => {
+const Protected = ({ 
+  children, 
+  requiredRole = null, 
+  preventAuthenticated = false 
+}) => {
   const { user } = useSelector((state) => state.auth);
-  const [isLoading, setIsLoading] = useState(true); // Start with loading true
-  const [authChecked, setAuthChecked] = useState(false); // Track if auth check completed
+  const [isLoading, setIsLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
   const location = useLocation();
   const dispatch = useDispatch();
-
- // console.log("before check", user?.email);
 
   useEffect(() => {
     const checkAuthentication = async () => {
       setIsLoading(true);
       try {
-        const result = await dispatch(checkAuth());
-        // Auth check completed, regardless of success/failure
-        setAuthChecked(true);
-        
-        if (result?.payload?.success) {
-          setIsLoading(false);
-        } else {
-          setIsLoading(false);
-        }
+        await dispatch(checkAuth());
       } catch (error) {
+        console.error("Auth check failed:", error);
+      } finally {
         setAuthChecked(true);
         setIsLoading(false);
       }
     };
 
-    // Only run auth check if we haven't done it yet
     if (!authChecked) {
       checkAuthentication();
     }
@@ -47,18 +42,46 @@ const Protected = ({ children }) => {
     );
   }
 
- // console.log("after ", user?.email);
-  
-  // Only redirect after auth check is complete and no user exists
-  if (authChecked && user?.email) {
-    return children;
-  }
+  // If auth check is complete
+  if (authChecked) {
+    // Prevent authenticated users from accessing auth pages (login/register)
+    if (preventAuthenticated) {
+      if (user?.email) {
+        // Redirect authenticated users based on their role
+        switch (user.role) {
+          case 'admin':
+            return <Navigate to="/admin" replace />;
+          case 'student':
+          case 'owner':
+          default:
+            return <Navigate to="/" replace />;
+        }
+      } else {
+        // User is not authenticated, allow access to auth pages
+        return children;
+      }
+    }
 
- // console.log("last", user?.email);
-  
-  // Only redirect if auth check completed and no user
-  if (authChecked && !user?.email) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    // If no user exists and this is a protected page, redirect to login
+    if (!user?.email) {
+      return <Navigate to="/login" replace state={{ from: location }} />;
+    }
+
+    // Role-based access control for authenticated users
+    if (requiredRole && user.role !== requiredRole) {
+      // Redirect users without required role based on their actual role
+      switch (user.role) {
+        case 'admin':
+          return <Navigate to="/admin" replace />;
+        case 'student':
+        case 'owner':
+        default:
+          return <Navigate to="/" replace />;
+      }
+    }
+
+    // If all checks pass, render children
+    return children;
   }
 
   // Fallback - should not reach here in normal flow

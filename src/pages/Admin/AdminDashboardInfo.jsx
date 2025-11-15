@@ -16,13 +16,11 @@ const AdminDashboardInfo = () => {
   const dispatch = useDispatch();
   const userStatistics = useSelector(selectUserStatistics);
   const loading = useSelector(selectUsersLoading);
-
+console.log("from admin dashboard: ", userStatistics)
   useEffect(() => {
     console.log("inside useeffect")
     dispatch(getUserStatistics());
   }, [dispatch]);
-
-  console.log(userStatistics, "from admin")
 
   // Extract data from statistics
   const totalUsers = userStatistics?.users?.overall?.totalUsers || 0;
@@ -81,10 +79,10 @@ const AdminDashboardInfo = () => {
           <p className="text-[#0d171b] text-base font-medium">Total Mess Listings</p>
           <p className="text-[#0d171b] text-2xl font-bold">{totalMessListings}</p>
           <div className="flex gap-2 flex-wrap">
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="success" className="text-xs">
               Active: {activeListings}
             </Badge>
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="outline" className="text-xs bg-yellow-400 text-white">
               Booked: {bookedListings}
             </Badge>
           </div>
@@ -219,7 +217,7 @@ const AdminDashboardInfo = () => {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-[#4c809a]">Booked Listings</span>
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="outline" className="text-xs bg-yellow-400 text-white">
                 {bookedListings}
               </Badge>
             </div>

@@ -16,14 +16,13 @@ export default function AddMessDetails() {
   const { updateMessLoading, updateMessError, updateMessSuccess } = useSelector((state) => state.owner);
   const { user } = useSelector(state => state.auth);
   
-  // Get edit mode and mess data from location state OR localStorage
   const { editMode: locationEditMode, messData: locationMessData } = location.state || {};
   
-  // State for edit mode and mess data
   const [editMode, setEditMode] = useState(false);
   const [messData, setMessData] = useState(null);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [hasShownSuccess, setHasShownSuccess] = useState(false);
+  const [hasShownError, setHasShownError] = useState(false);
 
   // Initialize form state
   const [formData, setFormData] = useState({
@@ -48,7 +47,6 @@ export default function AddMessDetails() {
   useEffect(() => {
     const loadEditData = () => {
       try {
-        // First check if we have data from location state
         if (locationEditMode && locationMessData && locationMessData._id) {
           setEditMode(true);
           setMessData(locationMessData);
@@ -57,11 +55,9 @@ export default function AddMessDetails() {
           return;
         }
 
-        // If no location state, check localStorage
         const storedEditData = localStorage.getItem('editMessData');
         if (storedEditData) {
           const parsedData = JSON.parse(storedEditData);
-          // Validate that we have required data
           if (parsedData && parsedData._id) {
             setEditMode(true);
             setMessData(parsedData);
@@ -71,7 +67,6 @@ export default function AddMessDetails() {
           }
         }
 
-        // Not in edit mode or invalid data
         setEditMode(false);
         setMessData(null);
         setIsDataLoaded(true);
@@ -108,15 +103,22 @@ export default function AddMessDetails() {
     setAvailableFrom(data.availableFrom ? new Date(data.availableFrom) : null);
   };
 
-  // Show error toast for both add and update
+  // Single error handler - Fixed duplicate error issue
   useEffect(() => {
-    if (addMessError) {
-      toast.error(addMessError);
-    }
-    if (updateMessError) {
-      toast.error(updateMessError);
+    // Reset error tracking when error state changes
+    if (addMessError || updateMessError) {
+      setHasShownError(false);
     }
   }, [addMessError, updateMessError]);
+
+  useEffect(() => {
+    // Show error only once and only if not already shown
+    if ((addMessError || updateMessError) && !hasShownError) {
+      const error = addMessError || updateMessError;
+      toast.error(error);
+      setHasShownError(true);
+    }
+  }, [addMessError, updateMessError, hasShownError]);
 
   // Handle success and redirect
   useEffect(() => {
@@ -126,16 +128,15 @@ export default function AddMessDetails() {
         
         if (editMode) {
           toast.success("Mess updated successfully!");
-          // Clear localStorage after successful update
           localStorage.removeItem('editMessData');
-          
-          // Refresh the mess list and redirect
           dispatch(getMessesByOwnerId(user?.id));
           
-          // Redirect after a short delay
           setTimeout(() => {
             navigate('/mess/owner');
           }, 1000);
+        } else {
+          toast.success("Mess added successfully!");
+          resetForm();
         }
         
         const timer = setTimeout(() => {
@@ -174,13 +175,12 @@ export default function AddMessDetails() {
 
     const files = Array.from(e.target.files);
     if (files.length + images.length > 3) {
-      alert("You can upload maximum 3 images.");
+      toast.error("You can upload maximum 3 images.");
       return;
     }
     const allFiles = [...images, ...files].slice(0, 3);
     setImages(allFiles);
     
-    // Create new previews and revoke old ones to prevent memory leaks
     setPreviews(prev => {
       prev.forEach(url => URL.revokeObjectURL(url));
       return allFiles.map(f => URL.createObjectURL(f));
@@ -204,6 +204,9 @@ export default function AddMessDetails() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Reset error tracking on new submission
+    setHasShownError(false);
     
     // Check if we have valid mess data for edit mode
     if (editMode) {
@@ -248,16 +251,11 @@ export default function AddMessDetails() {
         };
 
         console.log("Updating mess:", messData._id, updateData);
-        const res = await dispatch(updateMess({ 
+        await dispatch(updateMess({ 
           messId: messData._id, 
           updateData 
-        }))
-        if(res.payload.success){
-          localStorage.removeItem('editMessData');
-          toast.success(res.payload.message)
-        }
+        }));
         
-        ;
       } else {
         // Handle add - send FormData
         const submitFormData = new FormData();
@@ -292,17 +290,15 @@ export default function AddMessDetails() {
           submitFormData.append('images', image);
         });
 
-        await dispatch(addMess(submitFormData)).unwrap().then(res=>{
-          if(res.success){
-            toast.success(res.message)
-            // resetForm()
-          }
-        }
-        );
+        await dispatch(addMess(submitFormData));
       }
     } catch (error) {
       console.error("Submission error:", error);
-      toast.error(error.message || `Failed to ${editMode ? 'update' : 'add'} mess. Please try again.`);
+      // This catch block is now the ONLY place where we manually show errors
+      if (!hasShownError) {
+        toast.error(error.message || `Failed to ${editMode ? 'update' : 'add'} mess. Please try again.`);
+        setHasShownError(true);
+      }
     }
   };
 
@@ -324,6 +320,7 @@ export default function AddMessDetails() {
     setPreviews([]);
     setAvailableFrom(null);
     dispatch(resetAddMessState());
+    setHasShownError(false);
   };
 
   // Show existing images in edit mode
