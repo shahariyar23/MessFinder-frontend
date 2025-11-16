@@ -373,5 +373,4 @@ export const adminLinks = [
   { value: "owner-activity", label: "Owner Activity", icon: User },
   { value: "payments", label: "Payments", icon: DollarSign },
   { value: "booking", label: "All Booking", icon: BookOpen },
-  { value: "reportgenerate", label: "Report Generate", icon: ClipboardPlus },
 ];

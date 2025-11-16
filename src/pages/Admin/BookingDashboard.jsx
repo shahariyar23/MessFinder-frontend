@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -5,7 +6,6 @@ import {
   Download,
   Filter,
   DollarSign,
-  CreditCard,
   Calendar,
   User,
   Building,
@@ -13,8 +13,11 @@ import {
   XCircle,
   Clock,
   RefreshCw,
-  ChevronDown,
-  Loader2
+  Loader2,
+  Users,
+  Home,
+  TrendingUp,
+  Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,20 +26,20 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast, ToastContainer } from "react-toastify";
 import {
-  getAllPaymentsAdmin,
-  selectPayments,
-  selectPaymentStatistics,
-  selectPaymentPagination,
-  selectPaymentsLoading,
-  selectActionLoading,
-  selectPaymentsError,
+  getAllBookingsAdmin,
+  selectAdminBookings,
+  selectAdminBookingStatistics,
+  selectAdminBookingPagination,
+  selectAdminBookingsLoading,
+  selectAdminBookingActionLoading,
+  selectAdminBookingsError,
   setFilters,
   clearError
-} from "@/store/admin/paymentSlice";
-import * as XLSX from "xlsx";
+} from "@/store/admin/bookingSlice";
 
-// Excel Export Utility - Fixed Amount Display Issue
-const exportPaymentsToExcel = (payments, statistics, filters = {}) => {
+
+// Excel Export Utility - Booking Management Report
+const exportBookingsToExcel = (bookings, statistics, filters = {}) => {
   import('xlsx').then((XLSX) => {
     // Create a new workbook
     const wb = XLSX.utils.book_new();
@@ -44,75 +47,93 @@ const exportPaymentsToExcel = (payments, statistics, filters = {}) => {
     // Prepare the data for Excel
     const excelData = [
       // Title row
-      ['Payment History Report'],
+      ['Booking Management Report'],
       [],
       // Header info
       [`Generated on: ${new Date().toLocaleDateString()}`],
-      [`Total Payments: ${payments.length}`],
-      [`Total Revenue: ৳${statistics.revenue.totalRevenue.toLocaleString()}`],
-      [],
-      // Table headers
-      ['#', 'Booking ID', 'Customer', 'Agent', 'Property', 'Amount', 'Gateway', 'Status', 'Date']
+      [`Total Bookings: ${bookings.length}`],
+      [`Total Revenue: ৳${Number(statistics?.revenue?.totalRevenue || 0).toLocaleString()}`],
     ];
 
-    // Add payment data - FIXED: Proper amount formatting
-    payments.forEach((payment, index) => {
-      // FIXED: Ensure amount is properly formatted without spaces
-      let amount = payment.amount;
-      
-      // If amount is a string with spaces, clean it up
-      if (typeof amount === 'string') {
-        amount = parseInt(amount.replace(/\s/g, '')) || 0;
-      }
-      
-      // Format the amount properly
-      const formattedAmount = `৳${amount.toLocaleString()}`;
+    // Add filters info if applied
+    if (Object.keys(filters).length > 0) {
+      let filterText = "Filters: ";
+      if (filters.status) filterText += `Status: ${filters.status} `;
+      if (filters.paymentStatus) filterText += `Payment: ${filters.paymentStatus} `;
+      if (filters.search) filterText += `Search: "${filters.search}"`;
+      excelData.push([filterText]);
+    }
+
+    excelData.push([]);
+
+    // Table headers
+    excelData.push([
+      '#', 
+      'Booking ID', 
+      'Tenant', 
+      'Owner', 
+      'Mess', 
+      'Amount', 
+      'Status', 
+      'Payment', 
+      'Check-in', 
+      'Created'
+    ]);
+
+    // Add booking data
+    bookings.forEach((booking, index) => {
+      const amount = booking.payAbleAmount || 0;
+      const formattedAmount = `৳${Number(amount).toLocaleString()}`;
       
       excelData.push([
         index + 1,
-        payment.bookingId || payment.transactionId,
-        payment.customer || payment.user?.name || "N/A",
-        payment.agent || payment.owner?.name || "N/A",
-        payment.property || payment.mess?.title || "N/A",
-        formattedAmount, // FIXED: Properly formatted amount
-        payment.gateway || payment.paymentMethod || "ssicommerz",
-        payment.status || payment.paymentStatus,
-        new Date(payment.date || payment.paidAt).toLocaleDateString('en-GB')
+        booking.transactionId || booking._id,
+        booking.tenantName,
+        booking.owner?.name || "N/A",
+        booking.mess?.title || "N/A",
+        formattedAmount,
+        booking.bookingStatus,
+        booking.paymentStatus,
+        new Date(booking.checkInDate).toLocaleDateString('en-GB'),
+        new Date(booking.createdAt).toLocaleDateString('en-GB')
       ]);
     });
 
     // Add summary section
     excelData.push([]);
     excelData.push(['Summary:']);
-    excelData.push([`Total Revenue: ৳${statistics.revenue.totalRevenue.toLocaleString()}`]);
-    excelData.push([`Total Bookings: ${statistics.revenue.totalBookings || payments.length}`]);
+    excelData.push([`Total Revenue: ৳${Number(statistics?.revenue?.totalRevenue || 0).toLocaleString()}`]);
+    excelData.push([`Total Bookings: ${Number(statistics?.totalBookings || bookings.length)}`]);
     
-    // FIXED: Proper average calculation without spaces
-    const averageAmount = statistics.revenue.totalRevenue / (statistics.revenue.totalBookings || payments.length);
+    const averageAmount =
+      Number(statistics?.revenue?.totalRevenue || 0) /
+      Number(statistics?.revenue?.totalBookings || bookings.length);
     excelData.push([`Average Amount: ৳${averageAmount.toFixed(2)}`]);
+    excelData.push([`Confirmed Bookings: ${statistics?.statusCounts?.confirmed?.count || 0}`]);
 
     // Create worksheet
     const ws = XLSX.utils.aoa_to_sheet(excelData);
 
     // Set column widths for better readability
     const colWidths = [
-      { wch: 5 },  // #
-      { wch: 25 }, // Booking ID
-      { wch: 20 }, // Customer
-      { wch: 20 }, // Agent
-      { wch: 25 }, // Property
-      { wch: 15 }, // Amount
-      { wch: 15 }, // Gateway
-      { wch: 10 }, // Status
-      { wch: 12 }  // Date
+      { wch: 5 },   // #
+      { wch: 25 },  // Booking ID
+      { wch: 20 },  // Tenant
+      { wch: 20 },  // Owner
+      { wch: 25 },  // Mess
+      { wch: 15 },  // Amount
+      { wch: 12 },  // Status
+      { wch: 12 },  // Payment
+      { wch: 12 },  // Check-in
+      { wch: 12 }   // Created
     ];
     ws['!cols'] = colWidths;
 
     // Add the worksheet to the workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Payment History');
+    XLSX.utils.book_append_sheet(wb, ws, 'Booking Report');
 
     // Generate Excel file and download
-    const fileName = `payment-history-${new Date().toISOString().split('T')[0]}.xlsx`;
+    const fileName = `booking-report-${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(wb, fileName);
   }).catch(error => {
     console.error('Error generating Excel file:', error);
@@ -120,31 +141,19 @@ const exportPaymentsToExcel = (payments, statistics, filters = {}) => {
   });
 };
 
-// Helper function to clean amount values
-const cleanAmount = (amount) => {
-  if (typeof amount === 'string') {
-    // Remove all spaces and commas from the string
-    return parseInt(amount.replace(/[\s,]/g, '')) || 0;
-  }
-  return amount || 0;
-};
-
-
-
-
-const PaymentHistory = () => {
+const BookingDashboard = () => {
   const dispatch = useDispatch();
-  const payments = useSelector(selectPayments);
-  const statistics = useSelector(selectPaymentStatistics);
-  const pagination = useSelector(selectPaymentPagination);
-  const loading = useSelector(selectPaymentsLoading);
-  const actionLoading = useSelector(selectActionLoading);
-  const error = useSelector(selectPaymentsError);
+  const bookings = useSelector(selectAdminBookings);
+  const statistics = useSelector(selectAdminBookingStatistics);
+  const pagination = useSelector(selectAdminBookingPagination);
+  const loading = useSelector(selectAdminBookingsLoading);
+  const actionLoading = useSelector(selectAdminBookingActionLoading);
+  const error = useSelector(selectAdminBookingsError);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setLocalFilters] = useState({
     status: "",
-    paymentMethod: "",
+    paymentStatus: "",
     startDate: "",
     endDate: ""
   });
@@ -152,7 +161,7 @@ const PaymentHistory = () => {
 
   // Initialize data
   useEffect(() => {
-    dispatch(getAllPaymentsAdmin({ page: 1, limit: 10 }));
+    dispatch(getAllBookingsAdmin({ page: 1, limit: 10 })).then(res=>console.log(res));
   }, [dispatch]);
 
   const handleSearch = (e) => {
@@ -162,7 +171,7 @@ const PaymentHistory = () => {
       search: searchTerm
     };
     dispatch(setFilters(allFilters));
-    dispatch(getAllPaymentsAdmin({ page: 1, limit: 10, filters: allFilters }));
+    dispatch(getAllBookingsAdmin({ page: 1, limit: 10, filters: allFilters }));
   };
 
   const handleFilterChange = (key, value) => {
@@ -174,19 +183,19 @@ const PaymentHistory = () => {
       search: searchTerm
     };
     dispatch(setFilters(allFilters));
-    dispatch(getAllPaymentsAdmin({ page: 1, limit: 10, filters: allFilters }));
+    dispatch(getAllBookingsAdmin({ page: 1, limit: 10, filters: allFilters }));
   };
 
   const handleClearFilters = () => {
     setSearchTerm("");
     setLocalFilters({
       status: "",
-      paymentMethod: "",
+      paymentStatus: "",
       startDate: "",
       endDate: ""
     });
     dispatch(setFilters({}));
-    dispatch(getAllPaymentsAdmin({ page: 1, limit: 10 }));
+    dispatch(getAllBookingsAdmin({ page: 1, limit: 10 }));
   };
 
   const handlePageChange = (page) => {
@@ -194,29 +203,29 @@ const PaymentHistory = () => {
       ...filters,
       search: searchTerm
     };
-    dispatch(getAllPaymentsAdmin({ page, limit: 10, filters: allFilters }));
+    dispatch(getAllBookingsAdmin({ page, limit: 10, filters: allFilters }));
   };
 
   const handleExport = async () => {
-    if (payments.length === 0) {
-      toast.warning("No payments data to export");
+    if (bookings.length === 0) {
+      toast.warning("No bookings data to export");
       return;
     }
 
     setExportLoading(true);
     try {
-      // Get all payments without pagination for export
+      // Get all bookings without pagination for export
       const allFilters = {
         ...filters,
         search: searchTerm,
         limit: "1000"
       };
       
-      const result = await dispatch(getAllPaymentsAdmin({ page: 1, limit: 1000, filters: allFilters })).unwrap();
+      const result = await dispatch(getAllBookingsAdmin({ page: 1, limit: 1000, filters: allFilters })).unwrap();
       
       if (result.success) {
-        const allPayments = result.data.payments;
-        exportPaymentsToExcel(allPayments, result.data.statistics, allFilters);
+        const allBookings = result.data.bookings;
+        exportBookingsToExcel(allBookings, result.data.statistics, allFilters);
         toast.success("PDF report downloaded successfully!");
       }
     } catch (error) {
@@ -229,18 +238,33 @@ const PaymentHistory = () => {
 
   const getStatusColor = (status) => {
     const colors = {
+      confirmed: "bg-green-100 text-green-800",
+      pending: "bg-yellow-100 text-yellow-800",
+      cancelled: "bg-red-100 text-red-800",
+      rejected: "bg-red-100 text-red-800",
+      completed: "bg-blue-100 text-blue-800"
+    };
+    return colors[status] || "bg-gray-100 text-gray-800";
+  };
+
+  const getPaymentStatusColor = (status) => {
+    const colors = {
       paid: "bg-green-100 text-green-800",
       pending: "bg-yellow-100 text-yellow-800",
       failed: "bg-red-100 text-red-800",
-      refunded: "bg-blue-100 text-blue-800"
+      refunded: "bg-purple-100 text-purple-800"
     };
     return colors[status] || "bg-gray-100 text-gray-800";
   };
 
   const getStatusIcon = (status) => {
     const icons = {
-      paid: <CheckCircle className="w-4 h-4" />,
+      confirmed: <CheckCircle className="w-4 h-4" />,
       pending: <Clock className="w-4 h-4" />,
+      cancelled: <XCircle className="w-4 h-4" />,
+      rejected: <XCircle className="w-4 h-4" />,
+      completed: <CheckCircle className="w-4 h-4" />,
+      paid: <CheckCircle className="w-4 h-4" />,
       failed: <XCircle className="w-4 h-4" />,
       refunded: <RefreshCw className="w-4 h-4" />
     };
@@ -248,10 +272,10 @@ const PaymentHistory = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-BD', {
       style: 'currency',
       currency: 'BDT'
-    }).format(amount);
+    }).format(amount || 0);
   };
 
   const formatDate = (dateString) => {
@@ -274,21 +298,21 @@ const PaymentHistory = () => {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-100 rounded-lg">
-            <CreditCard className="w-6 h-6 text-blue-600" />
+            <Calendar className="w-6 h-6 text-blue-600" />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              Payment History
+              Booking Management
             </h1>
             <p className="text-gray-600 mt-1">
-              Manage and monitor all payment transactions
+              Manage and monitor all booking transactions and status
             </p>
           </div>
         </div>
 
         <Button
           onClick={handleExport}
-          disabled={exportLoading || payments.length === 0}
+          disabled={exportLoading || bookings.length === 0}
           className="flex items-center gap-2"
           variant="nav"
         >
@@ -309,10 +333,10 @@ const PaymentHistory = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {formatCurrency(statistics.revenue.totalRevenue)}
+                  {formatCurrency(statistics.revenue?.totalRevenue)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {statistics.revenue.totalBookings} bookings
+                  {statistics.revenue?.totalBookings} bookings
                 </p>
               </div>
             </div>
@@ -323,15 +347,15 @@ const PaymentHistory = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Payments</p>
+                <p className="text-sm font-medium text-gray-600">Total Bookings</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {statistics.totalPayments}
+                  {statistics.totalBookings}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   All transactions
                 </p>
               </div>
-              <CreditCard className="w-8 h-8 text-blue-600" />
+              <Calendar className="w-8 h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -342,12 +366,13 @@ const PaymentHistory = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Average Amount</p>
                 <p className="text-2xl font-bold text-purple-600">
-                  {formatCurrency(statistics.revenue.averageAmount)}
+                  {formatCurrency(statistics.revenue?.averageAmount)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   Per booking
                 </p>
               </div>
+              <TrendingUp className="w-8 h-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
@@ -358,29 +383,55 @@ const PaymentHistory = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Current Page</p>
                 <p className="text-2xl font-bold text-orange-600">
-                  {payments.length}
+                  {bookings.length}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   Showing
                 </p>
               </div>
-              <User className="w-8 h-8 text-orange-600" />
+              <Users className="w-8 h-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Status Distribution */}
-      {Object.keys(statistics.statusCounts).length > 0 && (
+      {Object.keys(statistics.statusCounts || {}).length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Payment Status Distribution</CardTitle>
+            <CardTitle>Booking Status Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-4">
               {Object.entries(statistics.statusCounts).map(([status, data]) => (
                 <div key={status} className="flex items-center gap-2">
                   <Badge className={getStatusColor(status)}>
+                    <span className="flex items-center gap-1">
+                      {getStatusIcon(status)}
+                      {status.toUpperCase()}
+                    </span>
+                  </Badge>
+                  <span className="text-sm text-gray-600">
+                    {data.count} bookings ({formatCurrency(data.revenue)})
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Payment Status Distribution */}
+      {Object.keys(statistics.paymentStatusCounts || {}).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Status Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-4">
+              {Object.entries(statistics.paymentStatusCounts).map(([status, data]) => (
+                <div key={status} className="flex items-center gap-2">
+                  <Badge className={getPaymentStatusColor(status)}>
                     <span className="flex items-center gap-1">
                       {getStatusIcon(status)}
                       {status.toUpperCase()}
@@ -410,13 +461,13 @@ const PaymentHistory = () => {
               {/* Search Input */}
               <div className="md:col-span-2">
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Search Payments
+                  Search Bookings
                 </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
                     type="text"
-                    placeholder="Search by transaction ID, name, mess..."
+                    placeholder="Search by tenant, owner, mess, transaction ID..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -424,10 +475,10 @@ const PaymentHistory = () => {
                 </div>
               </div>
 
-              {/* Status Filter */}
+              {/* Booking Status Filter */}
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Status
+                  Booking Status
                 </label>
                 <select
                   value={filters.status}
@@ -435,28 +486,29 @@ const PaymentHistory = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">All Status</option>
-                  <option value="paid">Paid</option>
                   <option value="pending">Pending</option>
-                  <option value="failed">Failed</option>
-                  <option value="refunded">Refunded</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="completed">Completed</option>
                 </select>
               </div>
 
-              {/* Payment Method Filter */}
+              {/* Payment Status Filter */}
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Payment Method
+                  Payment Status
                 </label>
                 <select
-                  value={filters.paymentMethod}
-                  onChange={(e) => handleFilterChange('paymentMethod', e.target.value)}
+                  value={filters.paymentStatus}
+                  onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="">All Methods</option>
-                  <option value="sslcommerz">SSL Commerz</option>
-                  <option value="card">Card</option>
-                  <option value="bank">Bank Transfer</option>
-                  <option value="cash">Cash</option>
+                  <option value="">All Payments</option>
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="failed">Failed</option>
+                  <option value="refunded">Refunded</option>
                 </select>
               </div>
 
@@ -488,9 +540,9 @@ const PaymentHistory = () => {
                     Status: {filters.status}
                   </Badge>
                 )}
-                {filters.paymentMethod && (
+                {filters.paymentStatus && (
                   <Badge variant="secondary" className="flex items-center gap-1">
-                    Method: {filters.paymentMethod}
+                    Payment: {filters.paymentStatus}
                   </Badge>
                 )}
                 {filters.startDate && (
@@ -538,21 +590,21 @@ const PaymentHistory = () => {
         </div>
       )}
 
-      {/* Payments Table */}
+      {/* Bookings Table */}
       <Card>
         <CardContent className="p-0">
           {loading ? (
             <div className="flex justify-center items-center p-12">
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                <span className="text-gray-600">Loading payments...</span>
+                <span className="text-gray-600">Loading bookings...</span>
               </div>
             </div>
           ) : (
             <>
               <div className="p-6 border-b">
                 <h3 className="text-lg font-semibold">
-                  Payment History ({payments.length})
+                  Booking History ({bookings.length})
                 </h3>
               </div>
 
@@ -564,19 +616,20 @@ const PaymentHistory = () => {
                     <TableHead>Owner</TableHead>
                     <TableHead>Mess</TableHead>
                     <TableHead>Amount</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Payment Date</TableHead>
+                    <TableHead>Booking Status</TableHead>
+                    <TableHead>Payment Status</TableHead>
                     <TableHead>Check-in Date</TableHead>
+                    <TableHead>Created Date</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {payments.length === 0 ? (
+                  {bookings.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="h-24 text-center">
+                      <TableCell colSpan={10} className="h-24 text-center">
                         <div className="flex flex-col items-center gap-2">
-                          <CreditCard className="w-12 h-12 text-gray-300" />
-                          <span className="text-gray-500">No payments found</span>
+                          <Calendar className="w-12 h-12 text-gray-300" />
+                          <span className="text-gray-500">No bookings found</span>
                           {hasActiveFilters && (
                             <Button variant="outline" onClick={handleClearFilters}>
                               Clear Filters
@@ -586,59 +639,76 @@ const PaymentHistory = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    payments.map((payment) => (
-                      <TableRow key={payment._id}>
+                    bookings.map((booking) => (
+                      <TableRow key={booking._id}>
                         <TableCell className="font-mono text-sm">
-                          {payment.transactionId}
+                          {booking.transactionId}
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{payment.tenantName}</p>
-                            <p className="text-sm text-gray-500">{payment.tenantEmail}</p>
-                            <p className="text-sm text-gray-500">{payment.user?.phone}</p>
+                            <p className="font-medium">{booking.tenantName}</p>
+                            <p className="text-sm text-gray-500">{booking.tenantEmail}</p>
+                            <p className="text-sm text-gray-500">{booking.tenantPhone}</p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{payment.owner?.name}</p>
-                            <p className="text-sm text-gray-500">{payment.owner?.email}</p>
+                            <p className="font-medium">{booking.owner?.name}</p>
+                            <p className="text-sm text-gray-500">{booking.owner?.email}</p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{payment.mess?.title}</p>
-                            <p className="text-sm text-gray-500">{payment.mess?.address}</p>
+                            <p className="font-medium">{booking.mess?.title}</p>
+                            <p className="text-sm text-gray-500">{booking.mess?.address}</p>
                             <p className="text-sm text-gray-500">
-                              ${payment.mess?.payPerMonth}/month
+                              ৳{booking.mess?.payPerMonth}/month
                             </p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <p className="font-semibold text-green-600">
-                            {formatCurrency(payment.amount)}
+                            {formatCurrency(booking.payAbleAmount)}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {payment.advanceMonths} month{payment.advanceMonths > 1 ? 's' : ''} advance
+                            {booking.advanceMonths} month{booking.advanceMonths > 1 ? 's' : ''} advance
                           </p>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="capitalize">
-                            {payment.paymentMethod}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(payment.paymentStatus)}>
+                          <Badge className={getStatusColor(booking.bookingStatus)}>
                             <span className="flex items-center gap-1">
-                              {getStatusIcon(payment.paymentStatus)}
-                              {payment.paymentStatus}
+                              {getStatusIcon(booking.bookingStatus)}
+                              {booking.bookingStatus}
                             </span>
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {payment.paidAt ? formatDate(payment.paidAt) : 'N/A'}
+                          <Badge className={getPaymentStatusColor(booking.paymentStatus)}>
+                            <span className="flex items-center gap-1">
+                              {getStatusIcon(booking.paymentStatus)}
+                              {booking.paymentStatus}
+                            </span>
+                          </Badge>
                         </TableCell>
                         <TableCell>
-                          {formatDate(payment.checkInDate)}
+                          {formatDate(booking.checkInDate)}
+                        </TableCell>
+                        <TableCell>
+                          {formatDate(booking.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1"
+                            onClick={() => {
+                              // Add view details functionality
+                              toast.info(`Viewing details for ${booking.tenantName}'s booking`);
+                            }}
+                          >
+                            <Eye className="w-4 h-4" />
+                            View
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
@@ -651,10 +721,10 @@ const PaymentHistory = () => {
       </Card>
 
       {/* Pagination */}
-      {!loading && payments.length > 0 && (
+      {!loading && bookings.length > 0 && (
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-sm text-gray-600">
-            Showing {payments.length} of {pagination.totalPayments} payments
+            Showing {bookings.length} of {pagination.totalBookings} bookings
             {hasActiveFilters && " (filtered)"}
           </div>
           
@@ -687,4 +757,4 @@ const PaymentHistory = () => {
   );
 };
 
-export default PaymentHistory;
+export default BookingDashboard;

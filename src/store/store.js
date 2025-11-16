@@ -8,6 +8,8 @@ import bookingMessReducer from "./mess/bookingSlice.js"
 import reviewReducer from "./mess/reviewSlice.js"
 import adminReducer from "./admin/usersSlice.js"
 import adminMessReducer from "./admin/adminMessSlice.js"
+import adminPaymentReducer from "./admin/paymentSlice.js"
+import adminBookingReducer from "./admin/bookingSlice.js"
 
 
 const store = configureStore({
@@ -28,7 +30,11 @@ const store = configureStore({
 
         admin: adminReducer,
         
-        adminMess: adminMessReducer
+        adminMess: adminMessReducer,
+
+        adminPayment: adminPaymentReducer,
+
+        adminBooking: adminBookingReducer
     }
 })
 

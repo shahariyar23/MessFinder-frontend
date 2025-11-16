@@ -7,10 +7,10 @@ import PaymentsHistory from "./PaymentHistory";
 import MessListings from "./MessListings";
 import MessOwners from "./MessOwners";
 import MessUsers from "./MessUsers";
-import PendingApprovals from "./PendingApprovals";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "@/store/auth/authSlice";
 import { toast } from "react-toastify";
+import BookingDashboard from "./BookingDashboard";
 
 
 
@@ -90,8 +90,8 @@ const handleLogout = () => {
           {activeTab === "payments" && (
             <PaymentsHistory/>
           )}
-          {activeTab === "reportgenerate" && (
-            <PendingApprovals/>
+          {activeTab === "booking" && (
+            <BookingDashboard/>
           )}
         </main>
       </div>

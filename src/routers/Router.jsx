@@ -227,7 +227,10 @@ export const router = createBrowserRouter([
           },
           { 
             path: "info/:messId", 
-            Component: SingleMess, // Removed Protected wrapper for public access
+            element:
+            <Protected>
+              <SingleMess />
+            </Protected>,
             handle: {
               title: "Mess Details - Mess Finder",
               meta: {
