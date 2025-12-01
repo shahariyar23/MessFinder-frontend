@@ -3,10 +3,13 @@ import Search from "@/components/Common/Seach";
 import SortByOrder from "@/components/Common/SortByOrder";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { advancedSearchMesses, getAllMesses } from "@/store/mess/messSlice";
 import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router";
+import { Star, MapPin } from "lucide-react";
 
 const Messlisting = () => {
   const { user } = useSelector((state) => state.auth);
@@ -19,6 +22,9 @@ const Messlisting = () => {
   const [location, setLocation] = useState("");
 
   const sortOptions = ["Price", "Date", "Rating"];
+
+
+console.log(messes, "all mess")
 
   // Map sort options to backend values
   const getSortByValue = (selectedOption) => {
@@ -50,13 +56,13 @@ const Messlisting = () => {
     [dispatch]
   );
 
-  // Handle search input change with debouncing
+  // Handle search input change
   const handleSearchChange = (value) => {
     setSearch(value);
     performSearch(value, location, selected, 1);
   };
 
-  // Handle location input change with debouncing
+  // Handle location input change
   const handleLocationChange = (value) => {
     setLocation(value);
     performSearch(search, value, selected, 1);
@@ -84,253 +90,275 @@ const Messlisting = () => {
     performSearch("", "", "Date", 1);
   }, [performSearch]);
 
-  return (
-    <div className="px-40 flex flex-1 justify-center py-5">
-      <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
-        {/* Search Section */}
-        <div className="px-4 py-3 space-y-4">
-          <Search
-            value={search}
-            onChange={handleSearchChange}
-            onSubmit={handleSearchSubmit}
-          />
+  // Format price
+  const formatPrice = (price) => {
+    return `৳${price}/month`;
+  };
 
-          {/* Location Search */}
+  // Calculate rating
+  const calculateRating = (ratingInfo) => {
+    if (ratingInfo?.ownerWideStats?.averageRating) {
+      return ratingInfo.ownerWideStats.averageRating.toFixed(1);
+    }
+    return "0.0";
+  };
+
+  // Calculate total reviews
+  const calculateTotalReviews = (ratingInfo) => {
+    if (ratingInfo?.ownerWideStats?.totalReviews) {
+      return ratingInfo.ownerWideStats.totalReviews;
+    }
+    return 0;
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Search Section */}
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <Search
+                value={search}
+                onChange={handleSearchChange}
+                onSubmit={handleSearchSubmit}
+                placeholder="Search for messes..."
+                className="w-full"
+              />
+            </div>
+            <div className="flex-1">
+              <Location
+                value={location}
+                onChange={handleLocationChange}
+                onSubmit={handleSearchSubmit}
+                placeholder="Search by location..."
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          {/* Search Summary */}
+          {(search || location) && (
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <div className="flex justify-between items-center">
+                <p className="text-blue-800 text-sm">
+                  Showing results for:
+                  {search && <span className="font-medium"> "{search}"</span>}
+                  {search && location && <span className="mx-1">and</span>}
+                  {location && (
+                    <span className="font-medium"> "{location}"</span>
+                  )}
+                  <span className="ml-2 text-gray-600">
+                    • Sorted by: {selected}
+                  </span>
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearch("");
+                    setLocation("");
+                    performSearch("", "", selected, 1);
+                  }}
+                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-100"
+                >
+                  Clear all
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Results Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
-            <Location
-              value={location}
-              onChange={handleLocationChange}
-              onSubmit={handleSearchSubmit}
-              placeholder="Search by location..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            <h1 className="text-3xl font-bold tracking-tight">
+              {search || location ? "Search Results" : "All Messes"}
+            </h1>
+            {!isLoading && (
+              <p className="text-gray-600 mt-1">
+                {search || location ? (
+                  <>Found {pagination?.totalMesses || 0} matching messes</>
+                ) : (
+                  <>Showing all {pagination?.totalMesses || 0} messes</>
+                )}
+                {pagination?.totalPages > 1 && (
+                  <span className="text-gray-500">
+                    {" "}
+                    • Page {pagination.currentPage} of {pagination.totalPages}
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Sort by:</span>
+            <SortByOrder
+              sortOptions={sortOptions}
+              selected={selected}
+              setSelected={handleSortChange}
             />
           </div>
         </div>
 
-        {/* Search Summary */}
-        {(search || location) && (
-          <div className="mx-4 mb-4 p-4 bg-blue-50 rounded-lg">
-            <p className="text-blue-800 text-sm">
-              Showing results for:
-              {search && ` Name: "${search}"`}
-              {search && location && " and "}
-              {location && ` Location: "${location}"`}
-              {` | Sorted by: ${selected}`}
-            </p>
-            {/* Clear filters button */}
-            {(search || location) && (
-              <button
-                onClick={() => {
-                  setSearch("");
-                  setLocation("");
-                  performSearch("", "", selected, 1);
-                }}
-                className="mt-2 text-blue-600 text-sm hover:text-blue-800 underline"
-              >
-                Clear all filters
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Results Count */}
-        {!isLoading && (
-          <div className="px-4 pb-2 text-gray-600">
-            {search || location ? (
-              <>Found {pagination?.totalMesses || 0} matching messes</>
-            ) : (
-              <>Showing all {pagination?.totalMesses || 0} messes</>
-            )}
-            {pagination?.totalPages > 1 &&
-              ` • Page ${pagination.currentPage} of ${pagination.totalPages}`}
-          </div>
-        )}
-
-        {/* Sort By */}
-        <h3 className="text-[#0d171b] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
-          Sort By
-        </h3>
-        <div className="flex gap-3 p-3 flex-wrap pr-4">
-          <SortByOrder
-            sortOptions={sortOptions}
-            selected={selected}
-            setSelected={handleSortChange}
-          />
-        </div>
-
         {/* Mess Listing Grid */}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6 p-4">
-          {isLoading ? (
-            <div className="col-span-full h-28 w-full flex items-center justify-center">
-              <Spinner className="size-10 text-sky-500" />
-            </div>
-          ) : messes.length > 0 ? (
-            messes.map((mess) => (
-              <div
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <Spinner className="h-10 w-10 text-primary" />
+            <span className="ml-3 text-gray-600">Loading messes...</span>
+          </div>
+        ) : messes.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {messes.map((mess) => (
+              
+              <Card
+                key={mess._id}
+                className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full cursor-pointer"
                 onClick={() => navigate(`/mess/info/${mess._id}`)}
-                key={mess?._id}
-                className="flex flex-col gap-3 pb-3 cursor-pointer border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"
               >
-                {/* Image */}
-                <div className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl overflow-hidden">
+                <div className="relative h-48 overflow-hidden rounded-t-lg">
                   <img
-                    className="w-full h-full object-cover"
                     src={mess.image?.[0]?.url || "/default-mess.jpg"}
                     alt={mess.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
                       e.target.src = "/default-mess.jpg";
                     }}
                   />
+                  <Badge
+                    variant="secondary"
+                    className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-black hover:bg-white"
+                  >
+                    {formatPrice(mess.payPerMonth)}
+                  </Badge>
                 </div>
 
-                {/* Content */}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-2">
-                    <p className="text-[#0d171b] text-base font-medium leading-normal line-clamp-1">
-                      {mess.title}
-                    </p>
-
-                    {/* Updated Rating Display */}
-                    <div className="flex items-center gap-1 group relative">
-                      <span className="text-yellow-500">⭐</span>
-                      <span className="text-sky-500 text-sm font-medium">
-                        {mess.ratingInfo?.ownerWideStats?.averageRating?.toFixed(
-                          1
-                        ) || "0.0"}
-                      </span>
-                      <span className="text-gray-500 text-xs">
-                        ({mess.ratingInfo?.ownerWideStats?.totalReviews || 0})
-                      </span>
-
-                      {/* Tooltip for more info */}
-                      {mess.ratingInfo?.ownerWideStats?.totalReviews > 0 && (
-                        <div className="absolute bottom-full mb-2 left-0 bg-gray-800 text-white text-xs rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap pointer-events-none">
-                          <div>
-                            Owner rating across{" "}
-                            {mess.ratingInfo.ownerWideStats.totalMesses} messes
-                          </div>
-                          {mess.ratingInfo.individualMessStats.totalReviews >
-                            0 && (
-                            <div className="text-gray-300 mt-1">
-                              This mess:{" "}
-                              {mess.ratingInfo.individualMessStats.averageRating?.toFixed(
-                                1
-                              )}{" "}
-                              ★ (
-                              {mess.ratingInfo.individualMessStats.totalReviews}{" "}
-                              reviews)
-                            </div>
-                          )}
-                        </div>
-                      )}
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-lg line-clamp-1">
+                        {mess.title}
+                      </CardTitle>
+                      <div className="flex items-center text-sm text-muted-foreground mt-1">
+                        <MapPin className="mr-1 h-4 w-4" />
+                        <span className="line-clamp-1">{mess.address}</span>
+                      </div>
                     </div>
                   </div>
+                </CardHeader>
 
-                  <p className="text-[#4c809a] text-sm font-normal leading-normal line-clamp-2 mb-3">
+                <CardContent className="flex flex-col flex-1">
+                  <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-2">
                     {mess.description}
                   </p>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <p className="text-black text-sm font-normal">
-                        Monthly:{" "}
-                        <span className="text-sky-500 font-bold">
-                          ৳ {mess.payPerMonth}
-                        </span>
-                      </p>
-                      <p className="text-black text-sm font-normal capitalize">
-                        {mess.roomType}
+                  {/* Mess Details */}
+                  <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+                    <div className="space-y-1">
+                      <p className="text-xs text-gray-500">Room Type</p>
+                      <p className="font-medium capitalize">
+                        {mess.roomType || "Not specified"}
                       </p>
                     </div>
-
-                    <div className="flex items-center justify-between">
-                      <p className="text-black text-sm font-normal">
-                        Available:{" "}
-                        <span className="text-sky-500 font-bold">
-                          {mess.availableFrom
-                            ? new Date(mess.availableFrom).toLocaleDateString()
-                            : "N/A"}
-                        </span>
+                    <div className="space-y-1">
+                      <p className="text-xs text-gray-500">Gender</p>
+                      <p className="font-medium capitalize">
+                        {mess.genderPreference || "Any"}
                       </p>
-                      <p className="text-black text-sm font-normal capitalize">
-                        {mess.genderPreference}
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-gray-500">Available From</p>
+                      <p className="font-medium">
+                        {mess.availableFrom
+                          ? new Date(mess.availableFrom).toLocaleDateString()
+                          : "N/A"}
                       </p>
                     </div>
                   </div>
 
                   {/* Facilities */}
                   {mess.facilities && mess.facilities.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="mb-4">
+                      <p className="text-xs text-gray-500 mb-2">Facilities</p>
                       <div className="flex flex-wrap gap-1">
                         {mess.facilities.slice(0, 3).map((facility, index) => (
-                          <span
+                          <Badge
                             key={index}
-                            className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                            variant="outline"
+                            className="text-xs bg-gray-50"
                           >
                             {facility}
-                          </span>
+                          </Badge>
                         ))}
                         {mess.facilities.length > 3 && (
-                          <span className="text-xs text-gray-500">
+                          <Badge
+                            variant="outline"
+                            className="text-xs bg-gray-50 text-gray-500"
+                          >
                             +{mess.facilities.length - 3} more
-                          </span>
+                          </Badge>
                         )}
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <div className="text-gray-500 text-lg mb-2">
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-gray-50 rounded-lg">
+            <div className="max-w-md mx-auto">
+              <h3 className="text-xl font-semibold text-gray-700 mb-3">
                 {search || location
-                  ? "No messes found matching your criteria"
+                  ? "No messes found"
                   : "No messes available"}
-              </div>
-              <p className="text-gray-400">
+              </h3>
+              <p className="text-gray-500 mb-6">
                 {search || location
                   ? "Try adjusting your search criteria"
                   : "Check back later for new mess listings"}
               </p>
               {(search || location) && (
-                <button
+                <Button
                   onClick={() => {
                     setSearch("");
                     setLocation("");
                     performSearch("", "", selected, 1);
                   }}
-                  className="mt-4 text-blue-600 hover:text-blue-800 underline"
+                  variant="outline"
                 >
                   Show all messes
-                </button>
+                </Button>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Pagination */}
-        {pagination?.totalPages > 1 && (
-          <div className="flex justify-center items-center mt-8 space-x-4 p-4">
-            <button
-              onClick={() => handlePageChange(pagination.currentPage - 1)}
-              disabled={!pagination.hasPrev || isLoading}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Previous
-            </button>
-
-            <span className="text-gray-600 text-sm">
-              Page {pagination.currentPage} of {pagination.totalPages}
-            </span>
-
-            <button
-              onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={!pagination.hasNext || isLoading}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Next
-            </button>
+        {pagination?.totalPages > 1 && !isLoading && (
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-12 pt-6 border-t border-gray-200">
+            <div className="text-sm text-gray-600 mb-4 sm:mb-0">
+              Showing page {pagination.currentPage} of {pagination.totalPages}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                disabled={!pagination.hasPrev}
+                className="min-w-[100px]"
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                disabled={!pagination.hasNext}
+                className="min-w-[100px]"
+              >
+                Next
+              </Button>
+            </div>
           </div>
         )}
       </div>
