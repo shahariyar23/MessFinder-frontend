@@ -152,23 +152,20 @@ export const getStudentById = createAsyncThunk(
 // Check Auth Status
 export const checkAuth = createAsyncThunk("auth/checkAuth", async (_, { rejectWithValue }) => {
   try {
+    const token = localStorage.getItem("token");
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
     const response = await axios.get(
-      `${import.meta.env.VITE_BACKEND_URL}/user/check-auth`, // Fixed path
+      `${import.meta.env.VITE_BACKEND_URL}/user/check-auth`,
       {
         withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        headers
       }
     );
-    
-    console.log('Check Auth Response:', response.data);
     return response.data;
-    
   } catch (error) {
-    console.error('Check Auth Error:', error.response?.data || error.message);
-    
-    // Return consistent error format
     return rejectWithValue({
       success: false,
       authenticated: false,

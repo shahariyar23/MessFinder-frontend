@@ -60,12 +60,6 @@ const UserListing = ({
     const handleStatusToggle = (user) => {
         if (onStatusChange) {
             const newStatus = user.status === "Active" ? "Suspended" : "Active";
-            // console.log("DEBUG - Toggling status:", {
-            //     userId: user.id,
-            //     currentStatus: user.status,
-            //     newStatus: newStatus,
-            //     userData: user
-            // });
             onStatusChange(user.id, newStatus);
         }
     };
