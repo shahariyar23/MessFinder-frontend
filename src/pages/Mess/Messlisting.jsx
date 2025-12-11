@@ -13,7 +13,7 @@ import { Star, MapPin } from "lucide-react";
 
 const Messlisting = () => {
   const { user } = useSelector((state) => state.auth);
-  const { messes, isLoading, pagination } = useSelector((state) => state.mess);
+  const { messes, isMessLoading, pagination } = useSelector((state) => state.mess);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -22,9 +22,6 @@ const Messlisting = () => {
   const [location, setLocation] = useState("");
 
   const sortOptions = ["Price", "Date", "Rating"];
-
-
-console.log(messes, "all mess")
 
   // Map sort options to backend values
   const getSortByValue = (selectedOption) => {
@@ -175,7 +172,7 @@ console.log(messes, "all mess")
             <h1 className="text-3xl font-bold tracking-tight">
               {search || location ? "Search Results" : "All Messes"}
             </h1>
-            {!isLoading && (
+            {!isMessLoading && ( // FIXED: Changed from isLoading to isMessLoading
               <p className="text-gray-600 mt-1">
                 {search || location ? (
                   <>Found {pagination?.totalMesses || 0} matching messes</>
@@ -203,7 +200,7 @@ console.log(messes, "all mess")
         </div>
 
         {/* Mess Listing Grid */}
-        {isLoading ? (
+        {isMessLoading ? (
           <div className="flex justify-center items-center h-64">
             <Spinner className="h-10 w-10 text-primary" />
             <span className="ml-3 text-gray-600">Loading messes...</span>
@@ -211,7 +208,6 @@ console.log(messes, "all mess")
         ) : messes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {messes.map((mess) => (
-              
               <Card
                 key={mess._id}
                 className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full cursor-pointer"
@@ -336,7 +332,7 @@ console.log(messes, "all mess")
         )}
 
         {/* Pagination */}
-        {pagination?.totalPages > 1 && !isLoading && (
+        {pagination?.totalPages > 1 && !isMessLoading && (
           <div className="flex flex-col sm:flex-row justify-between items-center mt-12 pt-6 border-t border-gray-200">
             <div className="text-sm text-gray-600 mb-4 sm:mb-0">
               Showing page {pagination.currentPage} of {pagination.totalPages}
