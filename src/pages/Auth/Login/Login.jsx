@@ -4,13 +4,15 @@ import { loginFromControls } from "@/config/config";
 import { loginUser } from "@/store/auth/authSlice";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "react-toastify";
 
 const Login = () => {
   const {isLoading, user} = useSelector(state=>state.auth);
   const dispatch =useDispatch();
   const nevigate = useNavigate()
+  const location = useLocation();
+  const from = location.state?.from;
     const [formData, setFormData] = useState({
         email: "",
         password: ""
@@ -18,10 +20,10 @@ const Login = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         dispatch(loginUser(formData)).then(res=>{
-          
           if(res?.payload?.success){
             toast.success(`${res.payload.message}`)
-            nevigate("/");
+            const redirectPath = from?.pathname ? `${from.pathname}${from.search || ""}` : "/";
+            nevigate(redirectPath, { replace: true });
           }else{
             toast.error(`${res?.payload?.message}`)
           }

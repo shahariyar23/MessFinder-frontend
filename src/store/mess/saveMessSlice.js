@@ -6,10 +6,12 @@ export const saveMess = createAsyncThunk(
   "savedMess/saveMess",
   async (messId, { rejectWithValue }) => {
     try {
+      const token = localStorage.getItem("token");
+      const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}) };
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/mess/save/add/${messId}`,
         {},
-        { withCredentials: true }
+        { withCredentials: true, headers }
       );
       return response.data;
     } catch (error) {
@@ -24,9 +26,11 @@ export const unsaveMess = createAsyncThunk(
   "savedMess/unsaveMess",
   async (messId, { rejectWithValue }) => {
     try {
+      const token = localStorage.getItem("token");
+      const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}) };
       const response = await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/mess/save/delete/${messId}`,
-        { withCredentials: true }
+        { withCredentials: true, headers }
       );
       return response.data;
     } catch (error) {
@@ -42,9 +46,11 @@ export const getSavedMesses = createAsyncThunk(
   async (filters = {}, { rejectWithValue }) => {
     try {
       const { page = 1, limit = 10 } = filters;
+      const token = localStorage.getItem("token");
+      const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}) };
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/mess/save/get-all?page=${page}&limit=${limit}`,
-        { withCredentials: true }
+        { withCredentials: true, headers }
       );
       return response.data;
     } catch (error) {
@@ -59,9 +65,11 @@ export const checkMessSaved = createAsyncThunk(
   "savedMess/checkMessSaved",
   async (messId, { rejectWithValue }) => {
     try {
+      const token = localStorage.getItem("token");
+      const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}) };
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/mess/save/check/${messId}`,
-        { withCredentials: true }
+        { withCredentials: true, headers }
       );
       return response.data;
     } catch (error) {

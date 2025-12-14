@@ -17,25 +17,17 @@ const UserProfile = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const { user } = useSelector(state => state.auth);
     const location = useLocation();
-    
-    // Filter sidebarLinks to only show user profile items
-    // Remove "All Messes" and "Request Mess view" from user profile
     const filteredSidebarLinks = sidebarLinks.filter(link => 
-        !["messes", "request"].includes(link.value)
+        !["list", "request"].includes(link.value)
     );
-    
-    // Add "My Messes" for mess owners
-    const userSidebarLinks = [
-        ...filteredSidebarLinks,
-        ...(user?.role === "owner" ? [
-            { 
-                value: "list", 
-                label: "My Messes", 
-                icon: Utensils,
-                iconFilled: Utensils 
-            }
-        ] : [])
-    ];
+    const userSidebarLinks = (
+        user?.role === "owner"
+            ? [
+                ...filteredSidebarLinks,
+                { value: "list", label: "My Messes", icon: Utensils, iconFilled: Utensils }
+              ]
+            : filteredSidebarLinks
+    );
     
     useEffect(() => {
         const handleResize = () => {
@@ -61,65 +53,6 @@ const UserProfile = () => {
     
     return (
         <div className="min-h-screen w-full bg-white">
-            {/* TOP NAVIGATION BAR - Home Mess About Contact */}
-            <nav className="sticky top-0 z-50 bg-white border-b shadow-sm">
-                <div className="container mx-auto px-4 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        {/* Logo and Desktop Navigation */}
-                        <div className="flex items-center gap-8">
-                            <Link to="/" className="text-xl lg:text-2xl font-bold text-[#0d171b]">
-                                MessFinder
-                            </Link>
-                            
-                            {/* Desktop Navigation Links */}
-                            <div className="hidden lg:flex items-center gap-6">
-                                <Link 
-                                    to="/" 
-                                    className="flex items-center gap-2 text-gray-700 hover:text-[#0d171b] transition-colors font-medium"
-                                >
-                                    <Home size={18} />
-                                    <span>Home</span>
-                                </Link>
-                                <Link 
-                                    to="/messes" 
-                                    className="flex items-center gap-2 text-gray-700 hover:text-[#0d171b] transition-colors font-medium"
-                                >
-                                    <Utensils size={18} />
-                                    <span>Mess</span>
-                                </Link>
-                                <Link 
-                                    to="/about" 
-                                    className="flex items-center gap-2 text-gray-700 hover:text-[#0d171b] transition-colors font-medium"
-                                >
-                                    <Info size={18} />
-                                    <span>About</span>
-                                </Link>
-                                <Link 
-                                    to="/contact" 
-                                    className="flex items-center gap-2 text-gray-700 hover:text-[#0d171b] transition-colors font-medium"
-                                >
-                                    <Phone size={18} />
-                                    <span>Contact</span>
-                                </Link>
-                            </div>
-                        </div>
-                        
-                        {/* Desktop Profile Link */}
-                        <div className="hidden lg:flex items-center gap-4">
-                            <span className="text-sm text-gray-600">{user?.name || 'User'}</span>
-                        </div>
-                        
-                        {/* Mobile Menu Button */}
-                        <button
-                            onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                            aria-label="Toggle menu"
-                        >
-                            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-                        </button>
-                    </div>
-                </div>
-            </nav>
 
             <Tabs
                 value={activeTab}
@@ -132,7 +65,7 @@ const UserProfile = () => {
             >
                 {/* Mobile Header (only shows when sidebar is closed) */}
                 {!sidebarOpen && (
-                    <div className="lg:hidden sticky top-16 z-40 bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm">
+                    <div className="lg:hidden sticky top-0 z-20 bg-white border-b px-4 py-3 flex items-center justify-between shadow-sm">
                         <div>
                             <h1 className="text-lg font-semibold text-[#0d171b] capitalize">
                                 {activeTab === "booking" ? "Bookings" : 
@@ -145,13 +78,20 @@ const UserProfile = () => {
                             </h1>
                             <p className="text-xs text-gray-500">User Dashboard</p>
                         </div>
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="p-2 rounded-lg hover:bg-gray-100"
+                            aria-label="Open dashboard menu"
+                        >
+                            <Menu size={22} />
+                        </button>
                     </div>
                 )}
 
                 <div className="flex flex-col lg:flex-row w-full relative">
                     {/* User Profile Sidebar */}
                     <aside className={`
-                        lg:sticky lg:top-16 lg:h-[calc(100vh-64px)] lg:w-64 bg-white 
+                        lg:sticky lg:top-0 lg:h-[100vh] lg:w-64 bg-white 
                         lg:border-r lg:pt-8 pt-4 lg:px-4 px-3
                         lg:translate-x-0 transition-transform duration-300 z-40
                         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -173,18 +113,8 @@ const UserProfile = () => {
                         </div>
                         
                         {/* User Info Section */}
-                        <div className="px-4 mb-6 lg:mb-8">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-[#d3e3ef] flex items-center justify-center">
-                                    <span className="font-semibold text-lg text-[#0d171b]">
-                                        {user?.name?.charAt(0) || 'U'}
-                                    </span>
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-[#0d171b]">{user?.name || 'User'}</h3>
-                                    <p className="text-sm text-gray-500 truncate">{user?.email || 'user@example.com'}</p>
-                                </div>
-                            </div>
+                        <div className="px-4 mb-6 mt-10 lg:mb-8">
+                            
                         </div>
                         
                         {/* Navigation Items Container */}
@@ -230,8 +160,8 @@ const UserProfile = () => {
                     )}
                     
                     {/* Main Content */}
-                    <main className="flex-1 w-full px-4 lg:px-8 py-4 lg:py-6 max-w-6xl mx-auto lg:min-h-[calc(100vh-64px)]">
-                        <div className="min-h-[calc(100vh-180px)] lg:min-h-[calc(100vh-140px)]">
+                    <main className="flex-1 w-full px-4 lg:px-8 py-4 lg:py-6 max-w-6xl mx-auto lg:min-h-[100vh]">
+                        <div className="min-h-[calc(100vh-180px)] lg:min-h-[calc(100vh-100px)]">
                             <TabsContent value="booking" className="mt-0 animate-fade-in">
                                 <UserBooking />
                             </TabsContent>

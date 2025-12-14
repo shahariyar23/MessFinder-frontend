@@ -56,10 +56,15 @@ export const getMessById = createAsyncThunk(
   "mess/getMessById",
   async (messId, { rejectWithValue }) => {
     try {
+      const token = localStorage.getItem("token");
+      const headers = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      };
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/mess/get-mess-info/${messId}`,
         {
           withCredentials: true,
+          headers
         }
       );
       return response.data;

@@ -87,7 +87,7 @@ const UserDashboard = () => {
     };
 
     return (
-        <div className="flex flex-col max-w-screen-xl mx-auto flex-1 w-full">
+        <div className="flex flex-col max-w-screen-xl mx-auto flex-1 w-full px-2 sm:px-4 md:px-6">
             {/* Header & Edit */}
             <div className="flex flex-wrap justify-between gap-3 p-4 items-center">
                 <p className="text-[#0d171b] text-2xl sm:text-3xl font-bold min-w-32">
@@ -216,7 +216,7 @@ const UserDashboard = () => {
                                 name="email"
                                 type="email"
                                 value={formData.email}
-                                disabled="ture"
+                                disabled
                                 placeholder="Enter your email"
                                 className="w-full"
                                 required
@@ -233,7 +233,7 @@ const UserDashboard = () => {
                                 name="phone"
                                 type="tel"
                                 value={formData.phone}
-                                disabled="true"
+                                disabled
                                 placeholder="Enter your phone number"
                                 className="w-full"
                             />

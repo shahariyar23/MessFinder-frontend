@@ -21,7 +21,7 @@ import { toast } from "react-toastify";
 
 const SingleMess = () => {
   const { messId } = useParams();
-  const { currentMess, isLoading } = useSelector((state) => state.mess);
+  const { currentMess, isMessLoading, error } = useSelector((state) => state.mess);
   const { loading, checkedMesses } = useSelector((state) => state.save);
   const {requestLoading} = useSelector (state=> state.request)
   console.log(currentMess);
@@ -69,23 +69,22 @@ const SingleMess = () => {
     });
   };
 
-  if (isLoading) {
+  if (isMessLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <Spinner className="size-10 text-sky-500" />
       </div>
     );
   }
-
   if (!currentMess) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-600 mb-2">
-            Mess Not Found
+            Unable to load mess
           </h2>
           <p className="text-gray-500">
-            The mess you're looking for doesn't exist.
+            Please try again later.
           </p>
         </div>
       </div>
