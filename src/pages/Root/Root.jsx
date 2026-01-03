@@ -12,7 +12,7 @@ import { useRouteMetadata } from "@/hook/useRouteMetadata";
 
 const Root = () => {
   const [isLoading, setIsLoading] = useState(false);
-  console.log(import.meta.env.VITE_BACKEND_URL); 
+  const {user} = useSelector(state => state.auth)
   useRouteMetadata();
   const dispatch = useDispatch();
   useEffect(() => {

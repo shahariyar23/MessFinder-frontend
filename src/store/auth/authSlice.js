@@ -5,8 +5,10 @@ const initialState = {
   isAuthenticated: false,
   isLoading: false,
   user: null,
+  otpPending: false, // ✅ ADD
   message: "",
   error: null,
+  users: []
 };
 
 // Register User
@@ -48,11 +50,29 @@ export const loginUser = createAsyncThunk(
           withCredentials: true,
         }
       );
+      console.log(response, "from auth store");
       return response.data;
     } catch (error) {
       if (!error.response?.data?.success) {
         return error.response?.data || "Something went wrong";
       }
+    }
+  }
+);
+
+// OTP SEND
+export const verificationLoginOtp = createAsyncThunk(
+  "auth/verificationLoginOtp",
+  async ({ email, otp }) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/user/verify-login`,
+        { email, otp },
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (error) {
+      return error.response?.data || "OTP verification failed";
     }
   }
 );
@@ -79,7 +99,7 @@ export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
 export const generateResetCode = createAsyncThunk(
   "auth/generateResetCode",
   async (email) => {
-    console.group(email)
+    console.group(email);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/user/forgot-password`,
@@ -98,7 +118,7 @@ export const generateResetCode = createAsyncThunk(
 export const verifyResetCode = createAsyncThunk(
   "auth/verifyResetCode",
   async ({ email, code }) => {
-    console.log(email, code)
+    console.log(email, code);
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/user/verify-code`,
@@ -140,6 +160,8 @@ export const getStudentById = createAsyncThunk(
           withCredentials: true,
         }
       );
+      console.log(response.data);
+      
       return response.data;
     } catch (error) {
       if (!error.response?.data?.success) {
@@ -150,29 +172,29 @@ export const getStudentById = createAsyncThunk(
 );
 
 // Check Auth Status
-export const checkAuth = createAsyncThunk("auth/checkAuth", async (_, { rejectWithValue }) => {
-  try {
-    const token = localStorage.getItem("token");
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
-    };
-    const response = await axios.get(
-      `${import.meta.env.VITE_BACKEND_URL}/user/check-auth`,
-      {
-        withCredentials: true,
-        headers
-      }
-    );
-    return response.data;
-  } catch (error) {
-    return rejectWithValue({
-      success: false,
-      authenticated: false,
-      message: error.response?.data?.message || 'Authentication check failed'
-    });
+export const checkAuth = createAsyncThunk(
+  "auth/checkAuth",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/user/check-auth`,
+        {
+          withCredentials: true, // ✅ THIS IS ALL YOU NEED
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue({
+        success: false,
+        authenticated: false,
+        message:
+          error.response?.data?.message || "Authentication check failed",
+      });
+    }
   }
-});
+);
+
 
 const authSlice = createSlice({
   name: "auth",
@@ -220,14 +242,23 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
+
         if (action.payload?.success) {
-          console.log(action.payload);
+          // 🔐 OTP REQUIRED
+          if (action.payload.otpRequired) {
+            state.otpPending = true;
+            state.user = null;
+            state.isAuthenticated = false;
+            state.message = action.payload.message;
+            return;
+          }
+
+          // ✅ NORMAL LOGIN (NO OTP)
           state.user = action.payload.data?.user;
           state.isAuthenticated = true;
+          state.otpPending = false;
           state.message = action.payload.message;
-          state.error = null;
 
-          // Store token in localStorage for easy access
           if (action.payload.data?.token) {
             localStorage.setItem("token", action.payload.data.token);
           }
@@ -236,11 +267,36 @@ const authSlice = createSlice({
           state.isAuthenticated = false;
         }
       })
+
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
         state.error = action.error?.message || "Login failed";
+      })
+
+      .addCase(verificationLoginOtp.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(verificationLoginOtp.fulfilled, (state, action) => {
+        state.isLoading = false;
+console.log(action.payload, "verification login page")
+        if (action.payload?.success) {
+          state.user = action.payload.data.user;
+          state.isAuthenticated = true;
+          state.otpPending = false;
+          state.message = action.payload.message;
+
+          if (action.payload.data.token) {
+            localStorage.setItem("token", action.payload.data.token);
+          }
+        } else {
+          state.error = action.payload?.message || "Invalid OTP";
+        }
+      })
+      .addCase(verificationLoginOtp.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error?.message || "Invalid OTP";
       })
 
       // Logout User

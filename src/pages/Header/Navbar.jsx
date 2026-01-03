@@ -5,7 +5,7 @@ import { Link, NavLink, useNavigate } from "react-router";
 // importing CSS for Navbar
 import "./Navbar.css";
 import { useDispatch, useSelector } from "react-redux";
-import { LogIn, UserCog } from "lucide-react";
+import { CaseUpper, CircleUser, FileChartColumn, HomeIcon, List, ListCheck, LogIn, UserCog, Utensils } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -66,26 +66,30 @@ const Navbar = () => {
         <div className="hidden md:flex items-center w-1/2 gap-10">
           <NavLink
             to="/"
-            className="text-[#0d171b] text-sm font-medium leading-normal"
+            className="text-[#0d171b] text-sm font-medium leading-normal flex items-center justify-between gap-2"
           >
+            <HomeIcon className="w-5 h-5"/>
             Home
           </NavLink>
           <NavLink
             to="/mess/listing"
-            className="text-[#0d171b] text-sm font-medium leading-normal"
+            className="text-[#0d171b] text-sm font-medium leading-normal flex items-center justify-between gap-2"
           >
+            <Utensils className="w-5 h-5"/>
             Mess
           </NavLink>
           <NavLink
             to="/about"
-            className="text-[#0d171b] text-sm font-medium leading-normal"
+            className="text-[#0d171b] text-sm font-medium leading-normal flex items-center justify-between gap-2"
           >
+            <FileChartColumn className="w-5 h-5" />
             About
           </NavLink>
           <NavLink
             to="/contact"
-            className="text-[#0d171b] text-sm font-medium leading-normal"
+           className="text-[#0d171b] text-sm font-medium leading-normal flex items-center justify-between gap-2"
           >
+            <CircleUser className="w-5 h-5"/>
             Contact
           </NavLink>
         </div>

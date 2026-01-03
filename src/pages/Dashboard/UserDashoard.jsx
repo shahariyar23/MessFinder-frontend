@@ -31,7 +31,7 @@ const UserDashboard = () => {
     useEffect(() => {
         dispatch(getStudentById(userId));
     }, [dispatch, userId]);
-
+console.log(user, "user")
     // Initialize form data when user data is available
     useEffect(() => {
         if (user) {

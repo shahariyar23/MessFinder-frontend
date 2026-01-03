@@ -30,7 +30,7 @@ export const addMess = createAsyncThunk(
   }
 );
 
-// Get All Messes (Simple search)
+// Get All Messes
 export const getAllMesses = createAsyncThunk(
   "mess/getAllMesses",
   async (params = {}, { rejectWithValue }) => {
@@ -50,6 +50,29 @@ export const getAllMesses = createAsyncThunk(
     }
   }
 );
+
+// Home Messes
+export const getHomeMesses = createAsyncThunk(
+  "mess/getHomeMesses", // ✅ UNIQUE
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/mess/get-all-mess`,
+        {
+          params,
+          withCredentials: true,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Something went wrong" }
+      );
+    }
+  }
+);
+
+
 
 // Get Single Mess by ID
 export const getMessById = createAsyncThunk(
@@ -125,7 +148,9 @@ const messSlice = createSlice({
   name: "mess",
   initialState: {
     messes: [],
+    homeMesses:[],
     currentMess: null,
+    totalMessListing: 0,
     
     addMessLoading: false,
     addMessError: null,
@@ -251,6 +276,21 @@ const messSlice = createSlice({
         }
       })
       .addCase(getAllMesses.rejected, (state, action) => {
+        state.isMessLoading = false;
+        state.error = action.payload?.message || "Failed to fetch messes";
+      })
+      .addCase(getHomeMesses.pending, (state) => {
+        state.isMessLoading = true;
+        state.error = null;
+      })
+      .addCase(getHomeMesses.fulfilled, (state, action) => {
+        state.isMessLoading = false;
+        if (action.payload.success) {
+          state.homeMesses = action.payload.data.messes || [];
+          state.totalMessListing = action.payload.data.totalMessForHome || 0;
+        }
+      })
+      .addCase(getHomeMesses.rejected, (state, action) => {
         state.isMessLoading = false;
         state.error = action.payload?.message || "Failed to fetch messes";
       })

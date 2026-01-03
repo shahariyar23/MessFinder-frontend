@@ -1,173 +1,67 @@
-import UserProfile from "@/components/Users/UserProfile";
+import { createBrowserRouter } from "react-router";
+
+/* ========== LAYOUTS ========== */
+import Root from "@/pages/Root/Root";
+import MessRoot from "@/pages/Mess/MessRoot";
+import AdminLayout from "@/pages/Admin/AdminDashboard";
+
+/* ========== PUBLIC PAGES ========== */
+import Dashboard from "@/pages/Dashboard/Dashboard";
 import About from "@/pages/About/About";
-import AdminDashboard from "@/pages/Admin/AdminDashboard";
-import AdminLayout from "@/pages/Admin/AdminDashboard"; 
-import AdminUserProfile from "@/pages/Admin/AdminUserProfile";
-import ForgotPassword from "@/pages/Auth/ForgotPassword/ForgotPassword";
-import ResetPassword from "@/pages/Auth/ForgotPassword/ResetPassword";
-import VerifyOTP from "@/pages/Auth/ForgotPassword/VerifyOtp";
+import Contact from "@/pages/Contact/Contact";
 import Login from "@/pages/Auth/Login/Login";
 import Signup from "@/pages/Auth/Signup/Signup";
-import Booking from "@/pages/Booking/Booking";
-import Contact from "@/pages/Contact/Contact";
-import Dashboard from "@/pages/Dashboard/Dashboard";
-import AddMessDetails from "@/pages/Mess/AddMessDetails";
-import Mess from "@/pages/Mess/Mess";
-import Messlisting from "@/pages/Mess/Messlisting";
-import MessRoot from "@/pages/Mess/MessRoot";
-import { PaymentFailed } from "@/pages/Mess/PaymentFailed";
-import { PaymentSuccess } from "@/pages/Mess/PaymentSuccess";
-import SingleMess from "@/pages/Mess/SingleMess";
+import ForgotPassword from "@/pages/Auth/ForgotPassword/ForgotPassword";
+import VerifyOTP from "@/pages/Auth/ForgotPassword/VerifyOtp";
+import ResetPassword from "@/pages/Auth/ForgotPassword/ResetPassword";
+import VerifyLoginOtp from "@/pages/Auth/Otp/VerifyOtp";
 import NotFound from "@/pages/NotFound/NotFound";
+
+/* ========== PROTECTED PAGES ========== */
 import Protected from "@/pages/Protected/Protected";
-import Root from "@/pages/Root/Root";
-import { createBrowserRouter } from "react-router"; 
+import UserProfile from "@/components/Users/UserProfile";
+import Messlisting from "@/pages/Mess/Messlisting";
+import SingleMess from "@/pages/Mess/SingleMess";
+import Booking from "@/pages/Booking/Booking";
+import AddMessDetails from "@/pages/Mess/AddMessDetails";
+import { PaymentSuccess } from "@/pages/Mess/PaymentSuccess";
+import { PaymentFailed } from "@/pages/Mess/PaymentFailed";
+
+/* ========== ADMIN ========== */
+import AdminDashboard from "@/pages/Admin/AdminDashboard";
+import AdminUserProfile from "@/pages/Admin/AdminUserProfile";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: Root,
     children: [
-      { 
-        index: true, 
-        Component: Dashboard,
-        handle: {
-          title: "Home - Mess Finder",
-          meta: {
-            description: "Find the best mess services near you. Browse through various mess options and book your meal plans.",
-            keywords: "mess, food, meal, booking, hostel"
-          }
-        }
-      },
-      { 
-        path: "about", 
-        Component: About,
-        handle: {
-          title: "About Us - Mess Finder",
-          meta: {
-            description: "Learn more about Mess Finder and our mission to connect students with quality mess services.",
-            keywords: "about, mission, team, mess finder"
-          }
-        }
-      },
-      { 
-        path: "contact", 
-        Component: Contact,
-        handle: {
-          title: "Contact Us - Mess Finder",
-          meta: {
-            description: "Get in touch with Mess Finder team for any queries or support.",
-            keywords: "contact, support, help, query"
-          }
-        }
-      },
-      { 
-        path: "signup", 
-        element: (
-          <Protected preventAuthenticated={true}>
-            <Signup />
-          </Protected>
-        ),
-        handle: {
-          title: "Sign Up - Mess Finder",
-          meta: {
-            description: "Create your Mess Finder account to start booking mess services.",
-            keywords: "signup, register, create account"
-          }
-        }
-      },
-      { 
-        path: "login", 
+      /* ---------- PUBLIC ROUTES ---------- */
+      { index: true, Component: Dashboard },
+      { path: "about", Component: About },
+      { path: "contact", Component: Contact },
+
+      { path: "forgot-password", Component: ForgotPassword },
+      { path: "verify-otp", Component: VerifyOTP },
+      { path: "verify-login-otp", Component: VerifyLoginOtp },
+      { path: "reset-password", Component: ResetPassword },
+
+      /* ---------- PROTECTED ROUTES ---------- */
+      {
+        path: "login",
         element: (
           <Protected preventAuthenticated={true}>
             <Login />
           </Protected>
         ),
-        handle: {
-          title: "Login - Mess Finder",
-          meta: {
-            description: "Login to your Mess Finder account to manage your bookings and profile.",
-            keywords: "login, signin, account"
-          }
-        }
       },
-      { 
-        path: "forgot-password", 
-        Component: ForgotPassword,
-        handle: {
-          title: "Forgot Password - Mess Finder",
-          meta: {
-            description: "Reset your Mess Finder account password.",
-            keywords: "forgot password, reset password"
-          }
-        }
-      },
-      { 
-        path: "verify-otp", 
-        Component: VerifyOTP,
-        handle: {
-          title: "Verify OTP - Mess Finder",
-          meta: {
-            description: "Verify your OTP to reset your password.",
-            keywords: "verify otp, authentication"
-          }
-        }
-      },
-      { 
-        path: "reset-password", 
-        Component: ResetPassword,
-        handle: {
-          title: "Reset Password - Mess Finder",
-          meta: {
-            description: "Set your new password for Mess Finder account.",
-            keywords: "reset password, new password"
-          }
-        }
-      },
-      { 
-        path: "payment/success", 
+      {
+        path: "signup",
         element: (
-          <Protected>
-            <PaymentSuccess />
+          <Protected preventAuthenticated={true}>
+            <Signup />
           </Protected>
         ),
-        handle: {
-          title: "Payment Successful - Mess Finder",
-          meta: {
-            description: "Your payment has been processed successfully.",
-            keywords: "payment success, booking confirmed"
-          }
-        }
-      },
-      { 
-        path: "payment/failed", 
-        element: (
-          <Protected>
-            <PaymentFailed />
-          </Protected>
-        ),
-        handle: {
-          title: "Payment Failed - Mess Finder",
-          meta: {
-            description: "Your payment could not be processed. Please try again.",
-            keywords: "payment failed, try again"
-          }
-        }
-      },
-      { 
-        path: "payment/cancel", 
-        element: (
-          <Protected>
-            <PaymentFailed />
-          </Protected>
-        ),
-        handle: {
-          title: "Payment Cancelled - Mess Finder",
-          meta: {
-            description: "Your payment has been cancelled.",
-            keywords: "payment cancelled, booking cancelled"
-          }
-        }
       },
       {
         path: "profile/:userId",
@@ -176,129 +70,86 @@ export const router = createBrowserRouter([
             <UserProfile />
           </Protected>
         ),
-        handle: {
-          title: "User Profile - Mess Finder",
-          meta: {
-            description: "View and manage your user profile and bookings.",
-            keywords: "profile, user, account, bookings"
-          }
-        }
       },
+
       {
-        path: "mess/add",
+        path: "payment/success",
         element: (
-          <Protected requiredRole="owner"> {/* Added role protection */}
-            <AddMessDetails />
+          <Protected>
+            <PaymentSuccess />
           </Protected>
         ),
-        handle: {
-          title: "Add Mess - Mess Finder",
-          meta: {
-            description: "Add your mess service to Mess Finder platform.",
-            keywords: "add mess, register mess, become provider"
-          }
-        }
       },
+      {
+        path: "payment/failed",
+        element: (
+          <Protected>
+            <PaymentFailed />
+          </Protected>
+        ),
+      },
+      {
+        path: "payment/cancel",
+        element: (
+          <Protected>
+            <PaymentFailed />
+          </Protected>
+        ),
+      },
+
+      /* ---------- MESS ROUTES ---------- */
       {
         path: "mess",
         Component: MessRoot,
         children: [
-          { 
-            index: true, 
-            Component: Messlisting,
-            handle: {
-              title: "Mess Services - Mess Finder",
-              meta: {
-                description: "Browse all mess services available on our platform.",
-                keywords: "mess services, food providers, meal plans"
-              }
-            }
+          { index: true, Component: Messlisting },
+          { path: "listing", Component: Messlisting },
+
+          {
+            path: "info/:messId",
+            element: (
+              <Protected>
+                <SingleMess />
+              </Protected>
+            ),
           },
-          { 
-            path: "listing", 
-            Component: Messlisting,
-            handle: {
-              title: "Mess Listing - Mess Finder",
-              meta: {
-                description: "Find and compare different mess services near you.",
-                keywords: "mess listing, compare mess, find mess"
-              }
-            }
-          },
-          { 
-            path: "info/:messId", 
-            element:
-            <Protected>
-              <SingleMess />
-            </Protected>,
-            handle: {
-              title: "Mess Details - Mess Finder",
-              meta: {
-                description: "View detailed information about this mess service.",
-                keywords: "mess details, menu, pricing, location"
-              }
-            }
-          },
+
           {
             path: "booking/:messId",
             element: (
-              <Protected requiredRole="student"> {/* Added role protection */}
+              <Protected requiredRole="student">
                 <Booking />
               </Protected>
             ),
-            handle: {
-              title: "Book Mess - Mess Finder",
-              meta: {
-                description: "Book your meal plan with this mess service.",
-                keywords: "book mess, meal plan, subscription"
-              }
-            }
+          },
+
+          {
+            path: "add",
+            element: (
+              <Protected requiredRole="owner">
+                <AddMessDetails />
+              </Protected>
+            ),
           },
         ],
       },
-      { 
-        path: "*", 
-        Component: NotFound,
-        handle: {
-          title: "Page Not Found - Mess Finder",
-          meta: {
-            description: "The page you are looking for does not exist.",
-            keywords: "404, not found, error"
-          }
-        }
-      },
+
+      /* ---------- 404 ---------- */
+      { path: "*", Component: NotFound },
     ],
   },
+
+  /* ---------- ADMIN ROUTES ---------- */
   {
     path: "/admin",
     element: (
       <Protected requiredRole="admin">
-        <AdminLayout /> {/* Fixed: Changed from AdminRoot to AdminLayout */}
+        <AdminLayout />
       </Protected>
     ),
     children: [
-      { 
-        index: true, 
-        Component: AdminDashboard,
-        handle: {
-          title: "Admin Dashboard - Mess Finder",
-          meta: {
-            description: "Admin panel for managing Mess Finder platform.",
-            keywords: "admin, dashboard, management"
-          }
-        }
-      },
-      { 
-        path: "users/:userId", 
-        Component: AdminUserProfile,
-        handle: {
-          title: "User Management - Mess Finder",
-          meta: {
-            description: "Manage user profiles and activities.",
-            keywords: "user management, admin, profile"
-          }
-        }
-      },
+      { index: true, Component: AdminDashboard },
+      { path: "users/:userId", Component: AdminUserProfile },
     ],
   },
 ]);

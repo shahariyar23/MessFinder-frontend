@@ -15,11 +15,12 @@ import { Link, useLocation } from "react-router";
 const UserProfile = () => {
     const [activeTab, setActiveTab] = useState("booking");
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const { user } = useSelector(state => state.auth);
+    const { user, isAuthenticated } = useSelector(state => state.auth);
     const location = useLocation();
     const filteredSidebarLinks = sidebarLinks.filter(link => 
         !["list", "request"].includes(link.value)
     );
+    
     const userSidebarLinks = (
         user?.role === "owner"
             ? [
@@ -126,7 +127,7 @@ const UserProfile = () => {
                                     
                                     return (
                                         <TabsTrigger
-                                            key={link.value}
+                                            key={index}
                                             value={link.value}
                                             onClick={() => setSidebarOpen(false)}
                                             className={`flex items-center justify-start gap-3 px-4 py-3.5 lg:py-3 rounded-lg cursor-pointer w-full transition-all
