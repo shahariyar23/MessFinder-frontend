@@ -10,6 +10,7 @@ import adminReducer from "./admin/usersSlice.js"
 import adminMessReducer from "./admin/adminMessSlice.js"
 import adminPaymentReducer from "./admin/paymentSlice.js"
 import adminBookingReducer from "./admin/bookingSlice.js"
+import homeSlice from "./admin/homePageSlice.js"
 
 
 const store = configureStore({
@@ -34,7 +35,11 @@ const store = configureStore({
 
         adminPayment: adminPaymentReducer,
 
-        adminBooking: adminBookingReducer
+        adminBooking: adminBookingReducer,
+
+        home: homeSlice,
+        
+
     }
 })
 

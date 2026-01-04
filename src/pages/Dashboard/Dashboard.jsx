@@ -215,7 +215,7 @@ const formatPrice = (price) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {homeMesses.map((mess, index) => (
+          {homeMesses.map((mess) => (
             <Card
                 key={mess._id}
                 className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full cursor-pointer"
