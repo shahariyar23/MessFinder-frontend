@@ -11,7 +11,7 @@ import { useDispatch } from "react-redux";
 import { logoutUser } from "@/store/auth/authSlice";
 import { toast } from "react-toastify";
 import BookingDashboard from "./BookingDashboard";
-import { HomePage } from "./HomePage";
+import HomePage from "./HomePage";
 
 
 

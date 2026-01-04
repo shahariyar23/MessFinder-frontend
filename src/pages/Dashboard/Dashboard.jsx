@@ -1,15 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import Autoplay from "embla-carousel-autoplay";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Carousel,
   CarouselContent,
@@ -25,54 +18,38 @@ import {
   MapPin,
   CheckCircle,
   ArrowRight,
-  Calendar,
-  DollarSign,
   Shield,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { getHomeMesses } from "@/store/mess/messSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { fetchHomeSlide } from "@/store/admin/homePageSlice";
+import { Spinner } from "@/components/ui/spinner";
 
 const Dashboard = () => {
-  const { homeMesses, totalMessListing } = useSelector((state) => state.mess);
-const navigate = useNavigate()
+  const { homeMesses, totalMessListing, isHomeMessesLoading } = useSelector(
+    (state) => state.mess
+  );
+  const { slide = [], isLoading } = useSelector((state) => state.home);
+  const navigate = useNavigate();
   const [location, setLocation] = useState("");
   const dispatch = useDispatch();
-  const slides = [
-    {
-      title: "Find Your Perfect Mess Accommodation",
-      description:
-        "Discover a wide range of mess options tailored to your needs and preferences. Enjoy delicious, home-style meals and a comfortable living experience.",
-      buttonText: "View Listing",
-      backgroundImage:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuAa0STPioNBnB-IF2ejnC5iFgyaka-fpn-JMNLRGp8xlhUCANZIF-gJKRkS25pF9Ntf9zXwdVFQIShs2hPl9Jsf81_gwQyERaUR2Zmr3XCcBERqXPUWmKQL9c_3BxYiKMMZHAzflyOT9AAl7-DYusm-OA_OmDsBI4P3_KxVKxnrlzqZ3Z1hrQ55S865OPmR6IOKh_eB50dxrrnMAWlCAyQB-mI3FqV05MaS0pBVjgD3vwrpj-0Z4uw6P6cLweOINFE-WX0NmeBDXKc",
-    },
-    {
-      title: "Modern Kitchens, Healthy Meals",
-      description:
-        "Our featured messes come with state-of-the-art kitchens ensuring hygienic and delicious food every day.",
-      buttonText: "Explore Now",
-      backgroundImage:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuCnvkl8EZ9R4UQopb1eEvivyKud4M4xP1Pm-geQOOnbq64vfH7k46F7QJGCcPNWA4I0p60ulVg628tQB2Xexnnb4ncvIsMBU0dRhHWBxXdomk8mvZY27mnk1xJgo6Zz9tHnkPQTDeCmBezWUCFCzWxqbjh3kMGUlb6oGt-o-cM7-R_6HVK4gQT6QlAvRx9Kjn1-upV7YDDafUCK4wHa64csgnyglNaeRt6wngay5Chk3z4z-poYpP8DsQ669sqhpkkJDCgf2RE8ZxU",
-    },
-    {
-      title: "Vibrant Community Dining",
-      description:
-        "Connect with fellow students and build friendships in a lively and welcoming dining atmosphere.",
-      buttonText: "Join the Community",
-      backgroundImage:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuAaQM7CMzJXAFt6OpBMBlAf1EqOgLH8Ay4USfd-8loB6PSuSo2MJ_lsUFCMnwSPuwddRWSr-zqf-ODfLX5Za3P86JcRer7QhOD2j-3z5wI4tvN-KPocqO3MY5QjuKcVb6PguGmGTvSKQ630bgwGl3AZVx2Mki4zGfVdseZs1RrsL40Agy6A46mDYAXZ6S_kFUqx9T8r6Op598faLsOPo2ohFfKt410av7bBGp6OP5EIsvyrNPxQVigZuLaeen5tlkvwNgH1gdzKPws",
-    },
-  ];
 
   useEffect(() => {
-    dispatch(
-      getHomeMesses({
-        limit: 4,
-      })
-    );
-  }, [dispatch]);
+    if (homeMesses.length === 0 && !isHomeMessesLoading) {
+      dispatch(getHomeMesses({ limit: 4 }));
+    }
 
+    if (slide.length === 0 && !isLoading) {
+      dispatch(fetchHomeSlide());
+    }
+  }, [
+    dispatch,
+    homeMesses.length,
+    slide.length,
+    isHomeMessesLoading,
+    isLoading,
+  ]);
 
   const features = [
     {
@@ -128,7 +105,7 @@ const navigate = useNavigate()
     },
   ];
 
-const formatPrice = (price) => {
+  const formatPrice = (price) => {
     return `৳${price}/month`;
   };
 
@@ -141,42 +118,63 @@ const formatPrice = (price) => {
   return (
     <div className="px-2 sm:px-4 md:px-6 lg:px-40 flex flex-col justify-center py-3 sm:py-4 min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Hero Section with Carousel */}
-      <section className="relative overflow-hidden rounded-2xl">
-        <Carousel className="w-full rounded-2xl">
-          <CarouselContent>
-            {slides.map((slide, index) => (
-              <CarouselItem key={index}>
-                <div
-                  className="relative h-[500px] md:h-[600px] flex items-center justify-center"
-                  style={{
-                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("${slide.backgroundImage}")`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                >
-                  <div className="container mx-auto px-4 text-center text-white">
-                    <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-in fade-in duration-500">
-                      {slide.title}
-                    </h1>
-                    <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto animate-in fade-in duration-700">
-                      {slide.description}
-                    </p>
-                    <Button
-                      variant="nav"
-                      size="lg"
-                      className="animate-in fade-in duration-500 border-0"
+      {isLoading ? (
+        <div className="w-screen h-screen flex justify-center items-center">
+          <Spinner />
+        </div>
+      ) : (
+        <section className="relative overflow-hidden rounded-2xl">
+          <Carousel
+            className="w-full rounded-2xl"
+            plugins={[
+              Autoplay({
+                delay: 4000, // ⏱ 4 seconds
+                stopOnInteraction: false, // keeps autoplay after click
+                stopOnMouseEnter: true, // pause on hover
+              }),
+            ]}
+          >
+            <CarouselContent>
+              {slide.length > 0 &&
+                slide.map((s, index) => (
+                  <CarouselItem key={index}>
+                    <div
+                      className="relative h-[500px] md:h-[600px] flex items-center justify-center"
+                      style={{
+                        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("${s.backgroundImage?.url}")`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
                     >
-                      {slide.buttonText} <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2" />
-          <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2" />
-        </Carousel>
-      </section>
+                      <div className="container mx-auto px-4 text-center text-white">
+                        <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-in fade-in duration-500">
+                          {s.title}
+                        </h1>
+                        <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto animate-in fade-in duration-700">
+                          {s.description}
+                        </p>
+                        <Button
+                          variant="nav"
+                          size="lg"
+                          className="animate-in fade-in duration-500 border-0"
+                          asChild
+                        >
+                          <Link to={s.buttonLink}>
+                            {s.buttonText}
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+            </CarouselContent>
+
+            <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2" />
+            <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2" />
+          </Carousel>
+        </section>
+      )}
 
       {/* Stats Section */}
       <section className="container mx-auto px-4 py-12">
@@ -217,97 +215,97 @@ const formatPrice = (price) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {homeMesses.map((mess) => (
             <Card
-                key={mess._id}
-                className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full cursor-pointer"
-                onClick={() => navigate(`/mess/info/${mess._id}`)}
-              >
-                <div className="relative h-48 overflow-hidden rounded-t-lg">
-                  <img
-                    src={mess.image?.[0]?.url || "/default-mess.jpg"}
-                    alt={mess.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      e.target.src = "/default-mess.jpg";
-                    }}
-                  />
-                  <Badge
-                    variant="secondary"
-                    className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-black hover:bg-white"
-                  >
-                    {formatPrice(mess.payPerMonth)}
-                  </Badge>
+              key={mess._id}
+              className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full cursor-pointer"
+              onClick={() => navigate(`/mess/info/${mess._id}`)}
+            >
+              <div className="relative h-48 overflow-hidden rounded-t-lg">
+                <img
+                  src={mess.image?.[0]?.url || "/default-mess.jpg"}
+                  alt={mess.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    e.target.src = "/default-mess.jpg";
+                  }}
+                />
+                <Badge
+                  variant="secondary"
+                  className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-black hover:bg-white"
+                >
+                  {formatPrice(mess.payPerMonth)}
+                </Badge>
+              </div>
+
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-lg line-clamp-1">
+                      {mess.title}
+                    </CardTitle>
+                    <div className="flex items-center text-sm text-muted-foreground mt-1">
+                      <MapPin className="mr-1 h-4 w-4" />
+                      <span className="line-clamp-1">{mess.address}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="flex flex-col flex-1">
+                <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-2">
+                  {mess.description}
+                </p>
+
+                {/* Mess Details */}
+                <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500">Room Type</p>
+                    <p className="font-medium capitalize">
+                      {mess.roomType || "Not specified"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500">Gender</p>
+                    <p className="font-medium capitalize">
+                      {mess.genderPreference || "Any"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500">Available From</p>
+                    <p className="font-medium">
+                      {mess.availableFrom
+                        ? new Date(mess.availableFrom).toLocaleDateString()
+                        : "N/A"}
+                    </p>
+                  </div>
                 </div>
 
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg line-clamp-1">
-                        {mess.title}
-                      </CardTitle>
-                      <div className="flex items-center text-sm text-muted-foreground mt-1">
-                        <MapPin className="mr-1 h-4 w-4" />
-                        <span className="line-clamp-1">{mess.address}</span>
-                      </div>
+                {/* Facilities */}
+                {mess.facilities && mess.facilities.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-500 mb-2">Facilities</p>
+                    <div className="flex flex-wrap gap-1">
+                      {mess.facilities.slice(0, 3).map((facility, index) => (
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs bg-gray-50"
+                        >
+                          {facility}
+                        </Badge>
+                      ))}
+                      {mess.facilities.length > 3 && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-gray-50 text-gray-500"
+                        >
+                          +{mess.facilities.length - 3} more
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                </CardHeader>
-
-                <CardContent className="flex flex-col flex-1">
-                  <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-2">
-                    {mess.description}
-                  </p>
-
-                  {/* Mess Details */}
-                  <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500">Room Type</p>
-                      <p className="font-medium capitalize">
-                        {mess.roomType || "Not specified"}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500">Gender</p>
-                      <p className="font-medium capitalize">
-                        {mess.genderPreference || "Any"}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-500">Available From</p>
-                      <p className="font-medium">
-                        {mess.availableFrom
-                          ? new Date(mess.availableFrom).toLocaleDateString()
-                          : "N/A"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Facilities */}
-                  {mess.facilities && mess.facilities.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-xs text-gray-500 mb-2">Facilities</p>
-                      <div className="flex flex-wrap gap-1">
-                        {mess.facilities.slice(0, 3).map((facility, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="text-xs bg-gray-50"
-                          >
-                            {facility}
-                          </Badge>
-                        ))}
-                        {mess.facilities.length > 3 && (
-                          <Badge
-                            variant="outline"
-                            className="text-xs bg-gray-50 text-gray-500"
-                          >
-                            +{mess.facilities.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                )}
+              </CardContent>
+            </Card>
           ))}
         </div>
       </section>
@@ -346,50 +344,6 @@ const formatPrice = (price) => {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">What Our Students Say</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Don't just take our word for it - hear from some of our satisfied
-            students
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((_, index) => (
-            <Card key={index} className="relative">
-              <CardContent className="pt-8">
-                <div className="absolute -top-4 left-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                    {["A", "B", "C"][index]}
-                  </div>
-                </div>
-                <div className="flex items-center mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-4 w-4 text-yellow-500 fill-yellow-500"
-                    />
-                  ))}
-                </div>
-                <p className="text-muted-foreground mb-6 italic">
-                  "Found the perfect mess within my budget. The food quality and
-                  living conditions exceeded my expectations!"
-                </p>
-                <div className="flex items-center">
-                  <div>
-                    <p className="font-semibold">Mohammad Rahman</p>
-                    <p className="text-sm text-muted-foreground">
-                      University of Dhaka
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16 rounded-2xl">

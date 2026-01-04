@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { verificationLoginOtp } from "@/store/auth/authSlice";
+import { verificationLoginOtp, checkAuth } from "@/store/auth/authSlice";
 import { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "react-toastify";
 
@@ -13,6 +13,7 @@ const VerifyLoginOtp = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useSelector((state) => state.auth); // Get user from Redux store
 
   const [email, setEmail] = useState("");
   const [from, setFrom] = useState(null);
@@ -83,11 +84,25 @@ const VerifyLoginOtp = () => {
       if (res?.success) {
         toast.success("Login verified");
 
-        const redirectPath = from?.pathname
-          ? `${from.pathname}${from.search || ""}`
-          : "/";
+        // ✅ IMPORTANT: Refresh auth state to get latest user data
+        await dispatch(checkAuth());
 
-        navigate(redirectPath, { replace: true });
+        // Give Redux a moment to update
+        setTimeout(() => {
+          // Check user role and redirect accordingly
+          const user = JSON.parse(localStorage.getItem("user") || "{}");
+          
+          if (user?.role === 'admin') {
+            navigate("/admin", { replace: true });
+          } else {
+            // For non-admin roles, use original redirect or go to home
+            const redirectPath = from?.pathname
+              ? `${from.pathname}${from.search || ""}`
+              : "/";
+            navigate(redirectPath, { replace: true });
+          }
+        }, 100);
+        
       } else {
         toast.error(res?.message || "Invalid OTP");
       }

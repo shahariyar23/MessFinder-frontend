@@ -11,19 +11,18 @@ export const addMess = createAsyncThunk(
         {
           withCredentials: true,
           headers: {
-            'Content-Type': 'multipart/form-data',
-          }
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
       return response.data;
-      
     } catch (error) {
       console.log("Backend error:", error);
-      
+
       return rejectWithValue(
-        error.response?.data || { 
-          success: false, 
-          message: "Something went wrong while adding mess" 
+        error.response?.data || {
+          success: false,
+          message: "Something went wrong while adding mess",
         }
       );
     }
@@ -53,7 +52,7 @@ export const getAllMesses = createAsyncThunk(
 
 // Home Messes
 export const getHomeMesses = createAsyncThunk(
-  "mess/getHomeMesses", // ✅ UNIQUE
+  "mess/getHomeMesses",
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await axios.get(
@@ -72,8 +71,6 @@ export const getHomeMesses = createAsyncThunk(
   }
 );
 
-
-
 // Get Single Mess by ID
 export const getMessById = createAsyncThunk(
   "mess/getMessById",
@@ -81,13 +78,13 @@ export const getMessById = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
       const headers = {
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/mess/get-mess-info/${messId}`,
         {
           withCredentials: true,
-          headers
+          headers,
         }
       );
       return response.data;
@@ -104,8 +101,8 @@ export const advancedSearchMesses = createAsyncThunk(
   async (searchParams, { rejectWithValue }) => {
     try {
       const cleanParams = Object.fromEntries(
-        Object.entries(searchParams).filter(([_, value]) => 
-          value !== "" && value !== null && value !== undefined
+        Object.entries(searchParams).filter(
+          ([_, value]) => value !== "" && value !== null && value !== undefined
         )
       );
 
@@ -119,9 +116,9 @@ export const advancedSearchMesses = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || { 
-          success: false, 
-          message: "Something went wrong while searching messes" 
+        error.response?.data || {
+          success: false,
+          message: "Something went wrong while searching messes",
         }
       );
     }
@@ -130,28 +127,29 @@ export const advancedSearchMesses = createAsyncThunk(
 
 export const deleteMess = createAsyncThunk(
   "mess/delete",
-  async({ rejectWithValue }) =>{
+  async ({ rejectWithValue }) => {
     try {
-      console.log("calling delete mess function")
+      console.log("calling delete mess function");
     } catch (error) {
       return rejectWithValue(
         error.response?.data || {
           success: false,
-          message: "Something is wrong"
+          message: "Something is wrong",
         }
-      ) 
+      );
     }
   }
-)
+);
 
 const messSlice = createSlice({
   name: "mess",
   initialState: {
     messes: [],
-    homeMesses:[],
+    homeMesses: [],
     currentMess: null,
     totalMessListing: 0,
-    
+    isHomeMessesLoading: false,
+
     addMessLoading: false,
     addMessError: null,
     addMessSuccess: false,
@@ -164,7 +162,7 @@ const messSlice = createSlice({
       hasNext: false,
       hasPrev: false,
     },
-    
+
     filters: {
       search: "",
       budget: "",
@@ -178,10 +176,10 @@ const messSlice = createSlice({
       page: 1,
       limit: 10,
     },
-    
+
     // FIXED: Only use isMessLoading, remove isSearchLoading for consistency
     isMessLoading: false,
-    
+
     error: null,
     searchError: null,
   },
@@ -189,7 +187,7 @@ const messSlice = createSlice({
     updateFilters: (state, action) => {
       state.filters = { ...state.filters, ...action.payload };
     },
-    
+
     clearFilters: (state) => {
       state.filters = {
         search: "",
@@ -205,7 +203,7 @@ const messSlice = createSlice({
         limit: 10,
       };
     },
-    
+
     clearSearchResults: (state) => {
       state.messes = [];
       state.pagination = {
@@ -216,18 +214,18 @@ const messSlice = createSlice({
         hasPrev: false,
       };
     },
-    
+
     setCurrentPage: (state, action) => {
       state.filters.page = action.payload;
     },
-    
+
     resetAddMessState: (state) => {
       state.addMessLoading = false;
       state.addMessError = null;
       state.addMessSuccess = false;
       state.newlyAddedMess = null;
     },
-    
+
     clearErrors: (state) => {
       state.error = null;
       state.searchError = null;
@@ -256,7 +254,7 @@ const messSlice = createSlice({
         state.addMessError = action.payload?.message || "Failed to add mess";
         state.addMessSuccess = false;
       })
-      
+
       // Get All Messes
       .addCase(getAllMesses.pending, (state) => {
         state.isMessLoading = true;
@@ -280,21 +278,21 @@ const messSlice = createSlice({
         state.error = action.payload?.message || "Failed to fetch messes";
       })
       .addCase(getHomeMesses.pending, (state) => {
-        state.isMessLoading = true;
-        state.error = null;
+        state.isHomeMessesLoading = true;
       })
       .addCase(getHomeMesses.fulfilled, (state, action) => {
-        state.isMessLoading = false;
+        state.isHomeMessesLoading = false;
+
         if (action.payload.success) {
           state.homeMesses = action.payload.data.messes || [];
           state.totalMessListing = action.payload.data.totalMessForHome || 0;
         }
       })
       .addCase(getHomeMesses.rejected, (state, action) => {
-        state.isMessLoading = false;
-        state.error = action.payload?.message || "Failed to fetch messes";
+        state.isHomeMessesLoading = false;
+        state.error = action.payload?.message;
       })
-      
+
       // Get Mess by ID
       .addCase(getMessById.pending, (state) => {
         state.isMessLoading = true;
@@ -310,7 +308,7 @@ const messSlice = createSlice({
         state.isMessLoading = false;
         state.error = action.payload?.message || "Failed to fetch mess";
       })
-      
+
       // Advanced Search Messes - FIXED: Use isMessLoading instead of isSearchLoading
       .addCase(advancedSearchMesses.pending, (state) => {
         state.isMessLoading = true;
@@ -327,11 +325,11 @@ const messSlice = createSlice({
             hasNext: action.payload.data.pagination?.hasNext || false,
             hasPrev: action.payload.data.pagination?.hasPrev || false,
           };
-          
+
           if (action.payload.data.filters) {
-            state.searchFilters = { 
-              ...state.searchFilters, 
-              ...action.payload.data.filters 
+            state.searchFilters = {
+              ...state.searchFilters,
+              ...action.payload.data.filters,
             };
           }
         }
@@ -357,7 +355,7 @@ export const {
   clearSearchResults,
   setCurrentPage,
   resetAddMessState,
-  clearErrors
+  clearErrors,
 } = messSlice.actions;
 
 export default messSlice.reducer;

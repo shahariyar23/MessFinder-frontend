@@ -21,7 +21,7 @@ const buttonVariants = cva(
         ghost:
           "cursor-pointer hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: " cursor-pointer text-primary underline-offset-4 hover:underline",
-        nav: "cursor-pointer bg-sky-500/100 shadow-xs text-primary-foreground hover:text-black border hover:bg-background hover:cursor-pointer",
+        nav: "cursor-pointer bg-sky-500/100 shadow-xs text-primary-foreground hover:text-black border hover:bg-white hover:cursor-pointer",
         login:
           "cursor-pointer border bg-background shadow-xs hover:bg-accent hover:bg-sky-500/100 hover:text-primary-foreground hover:cursor-pointer dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
       },
